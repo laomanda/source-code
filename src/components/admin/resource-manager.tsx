@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
 import {
   Plus,
   Search,
@@ -30,7 +31,10 @@ export function ResourceManager({
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<"all" | "published" | "draft">("all");
   const [categoryFilter, setCategoryFilter] = React.useState<string>("all");
-  const [deletingId, setDeletingId] = React.useState<string | null>(null);
+
+  // Custom Delete Dialog State
+  const [resourceToDelete, setResourceToDelete] = React.useState<Resource | null>(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   React.useEffect(() => {
     setResources(initialResources);
@@ -59,21 +63,23 @@ export function ResourceManager({
     });
   }, [resources, searchQuery, statusFilter, categoryFilter]);
 
-  const handleDelete = async (resource: Resource) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${resource.title}"? This cannot be undone.`
-    );
-    if (!confirmed) return;
+  const handleOpenDelete = (resource: Resource) => {
+    setResourceToDelete(resource);
+  };
 
-    setDeletingId(resource.id);
-    const res = await deleteResourceAction(resource.id);
+  const handleConfirmDelete = async () => {
+    if (!resourceToDelete) return;
+
+    setIsDeleting(true);
+    const res = await deleteResourceAction(resourceToDelete.id);
     if (res.error) {
       toast.error(res.error);
     } else {
-      toast.success(`Resource "${resource.title}" deleted.`);
-      setResources((prev) => prev.filter((r) => r.id !== resource.id));
+      toast.success(`Resource "${resourceToDelete.title}" deleted.`);
+      setResources((prev) => prev.filter((r) => r.id !== resourceToDelete.id));
     }
-    setDeletingId(null);
+    setIsDeleting(false);
+    setResourceToDelete(null);
   };
 
   return (
@@ -197,8 +203,7 @@ export function ResourceManager({
                             </Link>
                           </Button>
                           <Button
-                            onClick={() => handleDelete(item)}
-                            disabled={deletingId === item.id}
+                            onClick={() => handleOpenDelete(item)}
                             variant="ghost"
                             size="sm"
                             className="h-7 px-2 text-xs gap-1 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
@@ -220,6 +225,18 @@ export function ResourceManager({
           )}
         </CardContent>
       </Card>
+
+      {/* Custom Delete Confirmation Modal */}
+      <DeleteConfirmDialog
+        isOpen={!!resourceToDelete}
+        title="Delete Resource"
+        itemName={resourceToDelete?.title || ""}
+        itemType="resource"
+        description="This resource, including its source code and preview configuration, will be permanently removed from the JakDev library."
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setResourceToDelete(null)}
+      />
     </div>
   );
 }

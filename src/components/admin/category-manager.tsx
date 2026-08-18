@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
 import {
   Plus,
   Edit,
@@ -37,8 +38,9 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
-  // Delete State
-  const [deletingId, setDeletingId] = React.useState<string | null>(null);
+  // Custom Delete Dialog State
+  const [categoryToDelete, setCategoryToDelete] = React.useState<AdminCategoryWithCount | null>(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   React.useEffect(() => {
     setCategories(initialCategories);
@@ -125,27 +127,29 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     setIsLoading(false);
   };
 
-  const handleDelete = async (cat: AdminCategoryWithCount) => {
+  const handleOpenDelete = (cat: AdminCategoryWithCount) => {
     if (cat.resourceCount > 0) {
       toast.error(
         `Cannot delete "${cat.name}": ${cat.resourceCount} resource(s) are linked to it. Please reassign those resources first.`
       );
       return;
     }
+    setCategoryToDelete(cat);
+  };
 
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete category "${cat.name}"? This action cannot be undone.`
-    );
-    if (!confirmDelete) return;
+  const handleConfirmDelete = async () => {
+    if (!categoryToDelete) return;
 
-    setDeletingId(cat.id);
-    const res = await deleteCategoryAction(cat.id);
+    setIsDeleting(true);
+    const res = await deleteCategoryAction(categoryToDelete.id);
     if (res.error) {
       toast.error(res.error);
     } else {
-      toast.success(`Category "${cat.name}" deleted.`);
+      toast.success(`Category "${categoryToDelete.name}" deleted.`);
+      setCategories((prev) => prev.filter((c) => c.id !== categoryToDelete.id));
     }
-    setDeletingId(null);
+    setIsDeleting(false);
+    setCategoryToDelete(null);
   };
 
   return (
@@ -209,8 +213,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
                             <span>Edit</span>
                           </Button>
                           <Button
-                            onClick={() => handleDelete(cat)}
-                            disabled={deletingId === cat.id}
+                            onClick={() => handleOpenDelete(cat)}
                             variant="ghost"
                             size="sm"
                             className="h-7 px-2 text-xs gap-1 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
@@ -316,6 +319,18 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
           </div>
         </div>
       )}
+
+      {/* Custom Delete Confirmation Modal */}
+      <DeleteConfirmDialog
+        isOpen={!!categoryToDelete}
+        title="Delete Category"
+        itemName={categoryToDelete?.name || ""}
+        itemType="category"
+        description="This category will be permanently removed from the system. (Categories that currently contain resources cannot be deleted)."
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setCategoryToDelete(null)}
+      />
     </div>
   );
 }
