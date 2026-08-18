@@ -1,12 +1,29 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { loginAction } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Lock, Mail, AlertCircle, ArrowRight, ShieldCheck } from "lucide-react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import {
+  Lock,
+  Mail,
+  AlertCircle,
+  ArrowRight,
+  ShieldCheck,
+  Eye,
+  EyeOff,
+  ArrowLeft,
+} from "lucide-react";
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -14,6 +31,7 @@ function LoginForm() {
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [showPassword, setShowPassword] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -34,104 +52,133 @@ function LoginForm() {
         setIsLoading(false);
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Authentication error. Please try again.");
+      setError(
+        err instanceof Error ? err.message : "Authentication error. Please try again."
+      );
       setIsLoading(false);
     }
   };
 
   return (
-    <Card className="w-full max-w-md border-[#BAE8E8] bg-white shadow-soft">
-      <CardHeader className="space-y-2 text-center pb-4">
-        <div className="mx-auto h-12 w-12 rounded-xl bg-[#272343] flex items-center justify-center text-lg font-black text-[#FFD803] shadow-soft-sm">
-          J
-        </div>
-        <CardTitle className="text-2xl font-heading font-bold text-[#272343]">
-          JakDev Admin
-        </CardTitle>
-        <CardDescription className="text-xs text-[#2D334A]/80">
-          Sign in to manage categories, resources, and catalog content.
-        </CardDescription>
-      </CardHeader>
+    <div className="w-full max-w-md space-y-4">
+      {/* Return to Public Site Link */}
+      <div className="flex items-center justify-start">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-xs text-[#2D334A]/70 hover:text-[#272343] transition-colors font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] rounded px-1 py-0.5"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Back to JakDev</span>
+        </Link>
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          {error && (
-            <div className="p-3 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <div className="space-y-1.5">
-            <label
-              htmlFor="email"
-              className="text-xs font-semibold text-[#272343] flex items-center gap-1.5"
-            >
-              <Mail className="h-3.5 w-3.5 text-[#2D334A]/70" />
-              <span>Email Address</span>
-            </label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              required
-              autoComplete="email"
-              placeholder="admin@jakdev.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-              className="h-10 text-xs"
-            />
+      <Card className="w-full border-[#BAE8E8] bg-white shadow-soft">
+        <CardHeader className="space-y-2 text-center pb-4">
+          <div className="mx-auto h-12 w-12 rounded-xl bg-[#272343] flex items-center justify-center text-lg font-black text-[#FFD803] shadow-soft-sm">
+            J
           </div>
+          <CardTitle className="text-2xl font-heading font-bold text-[#272343]">
+            JakDev Admin
+          </CardTitle>
+          <CardDescription className="text-xs text-[#2D334A]/80">
+            Sign in to manage categories, resources, and catalog content.
+          </CardDescription>
+        </CardHeader>
 
-          <div className="space-y-1.5">
-            <label
-              htmlFor="password"
-              className="text-xs font-semibold text-[#272343] flex items-center gap-1.5"
-            >
-              <Lock className="h-3.5 w-3.5 text-[#2D334A]/70" />
-              <span>Password</span>
-            </label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              placeholder="••••••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-              className="h-10 text-xs"
-            />
-          </div>
-        </CardContent>
-
-        <CardFooter className="flex flex-col space-y-3 pt-2">
-          <Button
-            type="submit"
-            variant="primary"
-            size="default"
-            disabled={isLoading}
-            className="w-full font-semibold shadow-soft-sm gap-2"
-          >
-            {isLoading ? (
-              <span>Signing in...</span>
-            ) : (
-              <>
-                <span>Sign In</span>
-                <ArrowRight className="h-4 w-4" />
-              </>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="p-3 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
             )}
-          </Button>
 
-          <div className="flex items-center justify-center gap-1.5 text-[11px] text-[#2D334A]/60 font-mono">
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-            <span>Protected Supabase Auth</span>
-          </div>
-        </CardFooter>
-      </form>
-    </Card>
+            <div className="space-y-1.5">
+              <label
+                htmlFor="email"
+                className="text-xs font-semibold text-[#272343] flex items-center gap-1.5"
+              >
+                <Mail className="h-3.5 w-3.5 text-[#2D334A]/70" />
+                <span>Email Address</span>
+              </label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                required
+                autoComplete="email"
+                placeholder="admin@jakdev.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+                className="h-10 text-xs"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="password"
+                className="text-xs font-semibold text-[#272343] flex items-center gap-1.5"
+              >
+                <Lock className="h-3.5 w-3.5 text-[#2D334A]/70" />
+                <span>Password</span>
+              </label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  autoComplete="current-password"
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  className="h-10 text-xs pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-[#2D334A]/60 hover:text-[#272343] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] rounded"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </CardContent>
+
+          <CardFooter className="flex flex-col space-y-3 pt-2">
+            <Button
+              type="submit"
+              variant="primary"
+              size="default"
+              disabled={isLoading}
+              className="w-full font-semibold shadow-soft-sm gap-2"
+            >
+              {isLoading ? (
+                <span>Signing in...</span>
+              ) : (
+                <>
+                  <span>Sign In</span>
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-[#2D334A]/60 font-mono">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+              <span>Protected Supabase Auth</span>
+            </div>
+          </CardFooter>
+        </form>
+      </Card>
+    </div>
   );
 }
 

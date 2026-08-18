@@ -44,6 +44,17 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     setCategories(initialCategories);
   }, [initialCategories]);
 
+  // Handle escape key to close modal
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isModalOpen) {
+        closeModal();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isModalOpen]);
+
   const openCreateModal = () => {
     setEditingCategory(null);
     setName("");
