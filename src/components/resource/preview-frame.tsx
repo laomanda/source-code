@@ -67,9 +67,15 @@ export function PreviewFrame({ resource }: PreviewFrameProps) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+      console.warn("Sandboxed preview runtime message:", msg);
+      return true; // Prevents default browser error popups in iframe
+    };
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
-    body {
+    html, body {
       margin: 0;
       padding: 1.5rem;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -79,6 +85,7 @@ export function PreviewFrame({ resource }: PreviewFrameProps) {
       flex-direction: column;
       justify-content: center;
       min-height: 100vh;
+      overflow-x: hidden;
     }
   </style>
 </head>

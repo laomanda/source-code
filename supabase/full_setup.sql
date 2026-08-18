@@ -72,14 +72,30 @@ FOR SELECT
 TO public
 USING (true);
 
--- Authenticated Admin: Full CRUD (Select, Insert, Update, Delete)
+-- Authenticated Admin: Hardened CRUD (Insert, Update, Delete)
 DROP POLICY IF EXISTS "Allow authenticated full access on categories" ON public.categories;
-CREATE POLICY "Allow authenticated full access on categories"
+DROP POLICY IF EXISTS "Allow authenticated insert on categories" ON public.categories;
+DROP POLICY IF EXISTS "Allow authenticated update on categories" ON public.categories;
+DROP POLICY IF EXISTS "Allow authenticated delete on categories" ON public.categories;
+
+CREATE POLICY "Allow authenticated insert on categories"
 ON public.categories
-FOR ALL
+FOR INSERT
 TO authenticated
-USING (true)
-WITH CHECK (true);
+WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Allow authenticated update on categories"
+ON public.categories
+FOR UPDATE
+TO authenticated
+USING (auth.role() = 'authenticated')
+WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Allow authenticated delete on categories"
+ON public.categories
+FOR DELETE
+TO authenticated
+USING (auth.role() = 'authenticated');
 
 -- 8. RLS POLICIES FOR RESOURCES
 
@@ -91,14 +107,38 @@ FOR SELECT
 TO anon, public
 USING (status = 'published');
 
--- Authenticated Admin: Full CRUD on ALL resources (including drafts)
-DROP POLICY IF EXISTS "Allow authenticated full access on resources" ON public.resources;
-CREATE POLICY "Allow authenticated full access on resources"
+-- Authenticated Admin: Can view all resources (including drafts)
+DROP POLICY IF EXISTS "Allow authenticated select all resources" ON public.resources;
+CREATE POLICY "Allow authenticated select all resources"
 ON public.resources
-FOR ALL
+FOR SELECT
 TO authenticated
-USING (true)
-WITH CHECK (true);
+USING (auth.role() = 'authenticated');
+
+-- Authenticated Admin: Hardened CRUD (Insert, Update, Delete)
+DROP POLICY IF EXISTS "Allow authenticated full access on resources" ON public.resources;
+DROP POLICY IF EXISTS "Allow authenticated insert on resources" ON public.resources;
+DROP POLICY IF EXISTS "Allow authenticated update on resources" ON public.resources;
+DROP POLICY IF EXISTS "Allow authenticated delete on resources" ON public.resources;
+
+CREATE POLICY "Allow authenticated insert on resources"
+ON public.resources
+FOR INSERT
+TO authenticated
+WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Allow authenticated update on resources"
+ON public.resources
+FOR UPDATE
+TO authenticated
+USING (auth.role() = 'authenticated')
+WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Allow authenticated delete on resources"
+ON public.resources
+FOR DELETE
+TO authenticated
+USING (auth.role() = 'authenticated');
 
 -- 9. Storage Bucket for Previews
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
