@@ -1,0 +1,109 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { logoutAction } from "@/lib/actions/auth";
+import {
+  LayoutDashboard,
+  Layers,
+  FolderTree,
+  ExternalLink,
+  LogOut,
+} from "lucide-react";
+
+export interface AdminNavProps {
+  userEmail?: string | null;
+}
+
+export function AdminNav({ userEmail }: AdminNavProps) {
+  const pathname = usePathname();
+
+  // If on login page, render minimal header
+  if (pathname === "/admin/login") {
+    return null;
+  }
+
+  const navItems = [
+    { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { label: "Resources", href: "/admin/resources", icon: Layers },
+    { label: "Categories", href: "/admin/categories", icon: FolderTree },
+  ];
+
+  return (
+    <header className="sticky top-0 z-40 w-full border-b border-[#BAE8E8] bg-white/95 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Left: Brand + Admin Pill */}
+        <div className="flex items-center gap-6">
+          <Link href="/admin" className="flex items-center gap-2 group">
+            <div className="h-8 w-8 rounded-lg bg-[#272343] flex items-center justify-center text-sm font-black text-[#FFD803] shadow-soft-sm">
+              J
+            </div>
+            <span className="font-heading font-bold text-lg text-[#272343]">
+              JakDev
+            </span>
+            <Badge variant="warning" size="sm" className="font-mono text-[10px] ml-1">
+              ADMIN
+            </Badge>
+          </Link>
+
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                item.href === "/admin"
+                  ? pathname === "/admin"
+                  : pathname.startsWith(item.href);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                    isActive
+                      ? "bg-[#272343] text-white shadow-soft-sm font-semibold"
+                      : "text-[#2D334A] hover:bg-[#E3F6F5] hover:text-[#272343]"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Right: User Email + Public View + Logout */}
+        <div className="flex items-center gap-3">
+          {userEmail && (
+            <span className="hidden lg:inline-block text-xs font-mono text-[#2D334A]/70 truncate max-w-[180px]">
+              {userEmail}
+            </span>
+          )}
+
+          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex gap-1.5 text-xs text-[#2D334A] hover:text-[#272343]">
+            <Link href="/library" target="_blank" rel="noopener noreferrer">
+              <span>View Site</span>
+              <ExternalLink className="h-3 w-3" />
+            </Link>
+          </Button>
+
+          <form action={logoutAction}>
+            <Button
+              type="submit"
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs border-[#BAE8E8] text-[#2D334A] hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              <span>Log Out</span>
+            </Button>
+          </form>
+        </div>
+      </div>
+    </header>
+  );
+}

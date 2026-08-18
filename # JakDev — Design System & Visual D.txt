@@ -1,0 +1,825 @@
+# JakDev — Design System & Visual Direction
+
+## 1. Design Overview
+
+JakDev is a modern free source-code library for developers.
+
+The visual identity should communicate:
+
+* Clean
+* Elegant
+* Modern
+* Comfortable
+* Developer-focused
+* Interactive
+* Immersive
+* Lightweight
+
+JakDev should feel like a polished developer product, not a generic template marketplace.
+
+The design should prioritize clarity and usability while using immersive visuals selectively to create a memorable landing-page experience.
+
+---
+
+# 2. Core Design Principle
+
+> **JakDev should feel alive, not distracting.**
+
+Visual effects exist to enhance the experience, not compete with the product.
+
+The main principle is:
+
+```text
+Landing Page
+→ Experience
+
+Library
+→ Discovery
+
+Resource Detail
+→ Utility
+
+Admin
+→ Management
+```
+
+The more important the user's task becomes, the more restrained the visual treatment should be.
+
+---
+
+# 3. Theme
+
+## Light Mode Only
+
+The initial version of JakDev uses **light mode exclusively**.
+
+Do not implement dark mode in the MVP.
+
+The interface should primarily use:
+
+* White surfaces
+* Deep navy typography
+* Yellow accent
+* Soft cyan supporting colors
+
+The light theme should feel clean and spacious rather than overly bright or sterile.
+
+---
+
+# 4. Color System
+
+The color palette is based on the provided visual reference.
+
+## Primary Colors
+
+```text
+Background
+#FFFFFF
+
+Headline / Primary
+#272343
+
+Paragraph / Secondary
+#2D334A
+
+Primary Accent
+#FFD803
+```
+
+## Supporting Colors
+
+```text
+Soft Cyan
+#E3F6F5
+
+Light Cyan
+#BAE8E8
+```
+
+## Color Roles
+
+### #FFFFFF
+
+Primary background and clean surfaces.
+
+Use for:
+
+* Page backgrounds
+* Cards
+* Content surfaces
+* Preview containers
+
+### #272343
+
+Primary brand and typography color.
+
+Use for:
+
+* Headings
+* Navigation
+* Important labels
+* Primary borders
+* Icons
+* Brand elements
+
+### #2D334A
+
+Secondary text color.
+
+Use for:
+
+* Paragraphs
+* Descriptions
+* Metadata
+* Supporting information
+
+### #FFD803
+
+Primary accent.
+
+Use for:
+
+* CTA buttons
+* Important highlights
+* Active states
+* Interactive elements
+* Selected states
+* Visual emphasis
+
+Do not overuse the yellow accent.
+
+### #E3F6F5 / #BAE8E8
+
+Supporting visual colors.
+
+Use primarily for:
+
+* 3D backgrounds
+* Ambient visual effects
+* Illustrations
+* Subtle decorative surfaces
+* Depth effects
+
+---
+
+# 5. Typography
+
+Typography should be modern, clean, and highly readable.
+
+## Primary Heading Font
+
+**Geist**
+
+Use for:
+
+* Hero headlines
+* Section headings
+* Page titles
+* Navigation emphasis
+* Important UI headings
+
+Geist should provide the modern developer-product character of JakDev.
+
+## Body Font
+
+**Inter**
+
+Use for:
+
+* Paragraphs
+* Descriptions
+* Metadata
+* Forms
+* Navigation
+* General interface text
+
+Inter should remain the primary readability-focused font.
+
+## Code Font
+
+**JetBrains Mono**
+
+Use exclusively for technical/code content.
+
+Examples:
+
+* Source code
+* Code editor
+* Code blocks
+* Terminal-like technical information
+* Technical identifiers when appropriate
+
+Do not use the monospace font for normal headings or general UI.
+
+---
+
+# 6. Typography Principles
+
+Typography must remain:
+
+* Clear
+* Balanced
+* Readable
+* Hierarchical
+* Spacious
+
+Avoid:
+
+* Excessively decorative typography
+* Excessive font variations
+* Giant text everywhere
+* Monospace typography outside technical contexts
+
+The typography scale should be determined naturally during implementation based on the actual layout.
+
+Do not hardcode a complete typography scale in this document.
+
+---
+
+# 7. UI Character
+
+JakDev uses a:
+
+> **Soft, clean, comfortable interface.**
+
+The UI should avoid an aggressive Neo-Brutalist appearance.
+
+Use:
+
+* Soft rounded surfaces
+* Comfortable spacing
+* Subtle borders
+* Gentle shadows
+* Clean cards
+* Clear hierarchy
+* Controlled contrast
+
+Interactive elements may become slightly more expressive when appropriate.
+
+The base interface must remain calm.
+
+---
+
+# 8. Borders
+
+Borders should be subtle.
+
+Use borders primarily to:
+
+* Separate content
+* Define cards
+* Define input fields
+* Clarify UI boundaries
+* Support visual hierarchy
+
+Avoid thick decorative borders.
+
+Avoid making every element visibly bordered.
+
+---
+
+# 9. Shadows
+
+Use soft shadows sparingly.
+
+Shadows should create:
+
+* Depth
+* Elevation
+* Separation
+* Visual hierarchy
+
+Avoid heavy shadows.
+
+Avoid harsh black shadows associated with Neo-Brutalist design.
+
+---
+
+# 10. Radius
+
+Use soft, modern rounding.
+
+The exact radius values are intentionally not fixed at the design-system stage.
+
+Choose radius values based on the specific component and visual context.
+
+Consistency is more important than a single universal radius value.
+
+---
+
+# 11. Imagery
+
+JakDev should not depend on photography.
+
+Photography is not a primary part of the visual identity.
+
+The main visual assets should be:
+
+* JakDev branding
+* UI previews
+* Source-code visuals
+* Abstract 3D backgrounds
+* Geometric visuals
+* Lightweight illustrations
+* Browser/interface mockups
+
+Avoid generic stock photography such as:
+
+* People coding
+* Generic office scenes
+* Generic laptop photos
+* Stock developer portraits
+
+These do not provide meaningful value to the product.
+
+---
+
+# 12. Brand Assets
+
+The JakDev brand should have a recognizable visual mark.
+
+The branding system should include:
+
+* Logo mark
+* Wordmark
+* Favicon
+* Small-scale logo variation where necessary
+
+The logo should be visually recognizable even when the wordmark is not present.
+
+The logo should work across:
+
+* Navigation
+* Favicon
+* Social previews
+* Admin dashboard
+* Resource pages
+
+The logo should use the JakDev color identity.
+
+---
+
+# 13. 3D Visual Direction
+
+3D is an important part of JakDev's landing-page visual identity.
+
+However, 3D should primarily exist as a **background experience**, not as decorative objects attached to every section.
+
+The preferred visual direction:
+
+* Abstract
+* Minimal
+* Elegant
+* Soft lighting
+* Smooth movement
+* Depth
+* Perspective
+* Subtle gradients where required by the 3D rendering
+* Yellow and cyan accents
+* White/soft background integration
+
+Avoid:
+
+* Cartoon-like 3D
+* Overly realistic objects
+* Excessive floating objects
+* Visual clutter
+* Aggressive neon effects
+* Crypto-style visuals
+
+---
+
+# 14. 3D Sources
+
+The project may use:
+
+* React Bits
+* Browser-based 3D/WebGL
+* CSS-based depth effects
+* Custom implementations where appropriate
+
+React Bits and other interactive component resources should be adapted to match the JakDev visual identity.
+
+Do not use a component simply because it looks impressive.
+
+Every visual effect must serve the composition.
+
+---
+
+# 15. Immersive Experience
+
+Immersive visual effects are primarily reserved for the landing page.
+
+Possible techniques:
+
+* 3D background
+* Parallax
+* Scroll-based depth
+* AOS-style reveal
+* Mouse movement
+* Perspective
+* Layered backgrounds
+* Interactive showcase
+* Smooth section transitions
+
+These effects should create a sense of depth without distracting from the message.
+
+---
+
+# 16. Interaction Scope
+
+Interaction should be concentrated on the landing page.
+
+## Landing Page
+
+Allowed:
+
+* Parallax
+* Scroll reveal
+* AOS-style animation
+* 3D background
+* Mouse interaction
+* Interactive showcase
+* Hover effects
+* Smooth transitions
+* Micro-interactions
+
+The landing page is where JakDev can be visually expressive.
+
+---
+
+## Library
+
+Keep interaction functional.
+
+Use:
+
+* Search
+* Filters
+* Hover states
+* Card transitions
+* Button feedback
+* Pagination where required
+
+Avoid:
+
+* 3D backgrounds
+* Large parallax effects
+* Heavy scroll animations
+* Excessive decorative motion
+
+The user is there to find source code.
+
+---
+
+## Resource Detail
+
+Keep the interface focused on functionality.
+
+Use:
+
+* Preview interaction
+* Code viewer
+* Copy feedback
+* Responsive viewport controls
+* Simple transitions
+
+The resource preview itself may be interactive because interaction is part of its functionality.
+
+Do not add unnecessary immersive effects around the resource.
+
+---
+
+## Admin Dashboard
+
+Keep the interface highly functional.
+
+Focus on:
+
+* CRUD
+* Forms
+* Tables
+* Status
+* Search
+* Editing
+* Resource management
+
+Avoid:
+
+* 3D
+* Parallax
+* Large animations
+* Decorative motion
+
+The admin dashboard is a tool, not a showcase.
+
+---
+
+# 17. Motion Principles
+
+Animation should feel:
+
+* Smooth
+* Subtle
+* Responsive
+* Controlled
+* Purposeful
+
+Avoid:
+
+* Fast aggressive motion
+* Constant movement
+* Excessive bouncing
+* Unnecessary animations
+* Animation on every component
+
+Animation should communicate:
+
+* State
+* Hierarchy
+* Transition
+* Interaction
+* Spatial relationships
+
+---
+
+# 18. Motion Responsiveness
+
+Animations must work across different device capabilities.
+
+Consider:
+
+* Desktop
+* Tablet
+* Mobile
+* Low-powered devices
+* Reduced-motion preferences
+
+Heavy effects should be reduced or disabled when necessary.
+
+The visual experience must never become unusable because of animation.
+
+---
+
+# 19. Reduced Motion
+
+Respect:
+
+```text
+prefers-reduced-motion
+```
+
+When reduced motion is enabled:
+
+* Disable unnecessary parallax
+* Reduce transition intensity
+* Reduce 3D movement
+* Remove continuous decorative animation
+* Keep functional transitions understandable
+
+Accessibility takes priority over visual effects.
+
+---
+
+# 20. Responsive Design
+
+JakDev must provide a consistent experience across:
+
+* Desktop
+* Tablet
+* Mobile
+
+The design should adapt naturally rather than simply shrinking desktop layouts.
+
+Responsive behavior should prioritize:
+
+1. Readability
+2. Navigation
+3. Resource discovery
+4. Preview usability
+5. Code usability
+6. Performance
+
+Interactive and 3D effects may be simplified on smaller or less capable devices.
+
+---
+
+# 21. Landing Page Design Direction
+
+The landing page should be the most visually expressive part of JakDev.
+
+It should communicate:
+
+* What JakDev is
+* Why it is useful
+* What resources are available
+* How the platform works
+* Where to browse
+* How users can support the project
+
+The hero should establish the visual identity immediately.
+
+Potential visual techniques:
+
+* Large typography
+* Abstract 3D background
+* Interactive source-code showcase
+* Smooth scroll
+* Depth
+* Parallax
+* Motion
+* Subtle ambient visual effects
+
+Do not make every section equally complex.
+
+Visual intensity should vary throughout the page.
+
+---
+
+# 22. Library Design Direction
+
+The Library should transition from the immersive landing experience into a more practical interface.
+
+Priorities:
+
+* Search
+* Categories
+* Filters
+* Resource previews
+* Clear metadata
+* Fast scanning
+* Easy navigation
+
+The interface should feel calm and efficient.
+
+---
+
+# 23. Resource Detail Design Direction
+
+The resource page should prioritize the actual source code.
+
+Important visual hierarchy:
+
+```text
+Resource Title
+        ↓
+Description / Metadata
+        ↓
+Preview
+        ↓
+Source Code
+        ↓
+Copy / Download
+```
+
+The preview should receive strong visual emphasis.
+
+The source-code viewer should be clean and comfortable to read.
+
+---
+
+# 24. Admin Design Direction
+
+The Admin Dashboard should reuse the same JakDev visual language but with significantly reduced decoration.
+
+Use:
+
+* Clean navigation
+* Clear forms
+* Clear tables
+* Clear status indicators
+* Simple dialogs
+* Consistent buttons
+* Clear destructive-action states
+
+Functionality must always take priority over aesthetics.
+
+---
+
+# 25. Accessibility Principles
+
+JakDev should maintain basic accessibility standards.
+
+Requirements:
+
+* Semantic HTML
+* Keyboard navigation
+* Visible focus states
+* Accessible labels
+* Appropriate button elements
+* Sufficient color contrast
+* Meaningful alt text
+* Reduced-motion support
+
+Do not use animation as the only method of communicating information.
+
+---
+
+# 26. Design Flexibility
+
+This document intentionally does not define:
+
+* Exact grid systems
+* Exact spacing scale
+* Exact card dimensions
+* Exact component dimensions
+* Exact page layouts
+* Exact border-radius values
+* Exact shadow values
+
+These decisions should be made during implementation based on the actual interface.
+
+The design system provides direction and constraints, not rigid page specifications.
+
+---
+
+# 27. Design Anti-Patterns
+
+Avoid:
+
+* Neo-Brutalist visual treatment
+* Excessive gradients
+* Excessive glassmorphism
+* Generic SaaS templates
+* Stock photography
+* Excessive 3D objects
+* Excessive animations
+* Heavy shadows
+* Thick borders
+* Overly rounded UI
+* Excessive colors
+* Unnecessary decorative elements
+* Motion inside every page
+* Visual effects that reduce usability
+
+---
+
+# 28. Core Design Rule
+
+JakDev should follow this hierarchy:
+
+```text
+Function
+    ↓
+Clarity
+    ↓
+Interaction
+    ↓
+Visual Enhancement
+```
+
+Never reverse the order.
+
+The interface should remain useful even when all decorative animation and 3D effects are disabled.
+
+---
+
+# 29. Final Visual Identity
+
+JakDev should feel like:
+
+> **A clean and elegant developer platform with a memorable immersive landing experience.**
+
+The visual identity combines:
+
+```text
+Clean UI
++
+Elegant Typography
++
+White Space
++
+Deep Navy
++
+Electric Yellow
++
+Soft Cyan
++
+Abstract 3D
++
+Smooth Motion
++
+Developer-focused UX
+```
+
+The final experience should feel modern and premium without becoming visually noisy.
+
+---
+
+# 30. Final Principle
+
+> **Make the landing page memorable.**
+>
+> **Make the library effortless.**
+>
+> **Make the resource page useful.**
+>
+> **Make the admin dashboard practical.**
+
+JakDev should never sacrifice usability for visual effects.
+
+The goal is not to show how many animations can be added.
+
+The goal is to make developers think:
+
+> **"I found it. I previewed it. I copied it. I'm done."**

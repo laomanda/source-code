@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* JakDev Core Color Variables */
+    --background: 0 0% 100%; /* #FFFFFF */
+    --foreground: 247 31% 21%; /* #272343 Headline/Primary */
+    
+    --card: 0 0% 100%;
+    --card-foreground: 247 31% 21%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 247 31% 21%;
+    
+    --primary: 247 31% 21%; /* #272343 Deep Navy */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 177 48% 93%; /* #E3F6F5 Soft Cyan */
+    --secondary-foreground: 247 31% 21%;
+    
+    --muted: 177 48% 96%;
+    --muted-foreground: 229 25% 45%;
+    
+    --accent: 50 100% 51%; /* #FFD803 Electric Yellow */
+    --accent-foreground: 247 31% 21%; /* Deep Navy text on yellow */
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 180 35% 88%; /* Subtle Cyan/Slate Border */
+    --input: 180 35% 88%;
+    --ring: 247 31% 21%; /* Focus Ring */
+    
+    --radius: 0.5rem; /* 8px default radius */
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-background font-sans antialiased text-[#2D334A];
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-bold text-[#272343];
+  }
+}
+
+@layer utilities {
+  /* Typography Scale */
+  .text-display {
+    @apply font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#272343] leading-[1.1];
+  }
+  .text-h1 {
+    @apply font-heading text-3xl sm:text-4xl font-bold tracking-tight text-[#272343] leading-tight;
+  }
+  .text-h2 {
+    @apply font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#272343] leading-snug;
+  }
+  .text-h3 {
+    @apply font-heading text-xl sm:text-2xl font-semibold tracking-tight text-[#272343] leading-snug;
+  }
+  .text-h4 {
+    @apply font-heading text-lg sm:text-xl font-semibold tracking-tight text-[#272343] leading-normal;
+  }
+  .text-body-large {
+    @apply font-sans text-lg text-[#2D334A] leading-relaxed;
+  }
+  .text-body {
+    @apply font-sans text-base text-[#2D334A] leading-relaxed;
+  }
+  .text-body-small {
+    @apply font-sans text-sm text-[#2D334A] leading-normal;
+  }
+  .text-caption {
+    @apply font-sans text-xs text-[#2D334A]/70 leading-normal;
+  }
+  .text-code {
+    @apply font-mono text-xs sm:text-sm text-[#272343] bg-[#E3F6F5]/50 px-1.5 py-0.5 rounded border border-[#BAE8E8]/60;
+  }
+}

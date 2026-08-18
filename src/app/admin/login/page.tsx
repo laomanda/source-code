@@ -1,0 +1,152 @@
+"use client";
+
+import * as React from "react";
+import { useSearchParams } from "next/navigation";
+import { loginAction } from "@/lib/actions/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Lock, Mail, AlertCircle, ArrowRight, ShieldCheck } from "lucide-react";
+
+function LoginForm() {
+  const searchParams = useSearchParams();
+  const nextParam = searchParams.get("next") || "/admin";
+
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [error, setError] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("next", nextParam);
+
+    try {
+      const result = await loginAction(null, formData);
+      if (result?.error) {
+        setError(result.error);
+        setIsLoading(false);
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Authentication error. Please try again.");
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Card className="w-full max-w-md border-[#BAE8E8] bg-white shadow-soft">
+      <CardHeader className="space-y-2 text-center pb-4">
+        <div className="mx-auto h-12 w-12 rounded-xl bg-[#272343] flex items-center justify-center text-lg font-black text-[#FFD803] shadow-soft-sm">
+          J
+        </div>
+        <CardTitle className="text-2xl font-heading font-bold text-[#272343]">
+          JakDev Admin
+        </CardTitle>
+        <CardDescription className="text-xs text-[#2D334A]/80">
+          Sign in to manage categories, resources, and catalog content.
+        </CardDescription>
+      </CardHeader>
+
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-4">
+          {error && (
+            <div className="p-3 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <label
+              htmlFor="email"
+              className="text-xs font-semibold text-[#272343] flex items-center gap-1.5"
+            >
+              <Mail className="h-3.5 w-3.5 text-[#2D334A]/70" />
+              <span>Email Address</span>
+            </label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="admin@jakdev.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
+              className="h-10 text-xs"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label
+              htmlFor="password"
+              className="text-xs font-semibold text-[#272343] flex items-center gap-1.5"
+            >
+              <Lock className="h-3.5 w-3.5 text-[#2D334A]/70" />
+              <span>Password</span>
+            </label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              required
+              autoComplete="current-password"
+              placeholder="••••••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
+              className="h-10 text-xs"
+            />
+          </div>
+        </CardContent>
+
+        <CardFooter className="flex flex-col space-y-3 pt-2">
+          <Button
+            type="submit"
+            variant="primary"
+            size="default"
+            disabled={isLoading}
+            className="w-full font-semibold shadow-soft-sm gap-2"
+          >
+            {isLoading ? (
+              <span>Signing in...</span>
+            ) : (
+              <>
+                <span>Sign In</span>
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
+          </Button>
+
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-[#2D334A]/60 font-mono">
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+            <span>Protected Supabase Auth</span>
+          </div>
+        </CardFooter>
+      </form>
+    </Card>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center p-4">
+      <React.Suspense
+        fallback={
+          <div className="p-8 text-center text-xs text-[#2D334A]/60">
+            Loading login form...
+          </div>
+        }
+      >
+        <LoginForm />
+      </React.Suspense>
+    </div>
+  );
+}
