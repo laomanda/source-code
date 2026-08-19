@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { SuggestionType } from "@/types";
-import { submitSuggestionAction } from "@/lib/actions/suggestions";
 import {
   Puzzle,
   LayoutGrid,
@@ -86,10 +85,21 @@ export function DeveloperSuggestion() {
     setIsSubmitting(true);
 
     try {
-      const result = await submitSuggestionAction(selectedType, trimmed);
+      const response = await fetch("/api/suggestions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: selectedType,
+          description: trimmed,
+        }),
+      });
 
-      if (result.error) {
-        toast.error(result.error);
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
+        toast.error(data.error || "Failed to submit suggestion. Please try again.");
         setIsSubmitting(false);
         return;
       }
@@ -106,6 +116,7 @@ export function DeveloperSuggestion() {
       // Reset form state cleanly
       setSelectedType(null);
       setDescription("");
+      setIsSubmitting(false);
     } catch (err: unknown) {
       console.error("Developer suggestion submission error:", err);
       const errMsg = err instanceof Error ? err.message : "Something went wrong. Please try again.";

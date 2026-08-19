@@ -64,6 +64,7 @@ proxy.on('upgrade', (req, socket, head) => {
     socket.pipe(upstreamSocket);
   });
 
+  socket.on('error', () => {});
   proxyReq.on('error', () => {
     socket.destroy();
   });
