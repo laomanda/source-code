@@ -184,6 +184,18 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
           <p className="text-body text-[#2D334A]/80">
             Browse, search, and copy free ready-to-use components, blocks, and templates. Filter by technology, bookmark your favorites, and verify responsiveness.
           </p>
+          <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-[#2D334A]/70">
+            <span className="font-semibold text-[#272343] mr-1">Catalog Stats:</span>
+            <span className="inline-flex items-center gap-1 bg-[#E3F6F5]/70 px-2.5 py-0.5 rounded-full border border-[#BAE8E8] font-mono text-[11px] text-[#272343]">
+              <strong>{initialResources.length}</strong> Components
+            </span>
+            <span className="inline-flex items-center gap-1 bg-[#E3F6F5]/70 px-2.5 py-0.5 rounded-full border border-[#BAE8E8] font-mono text-[11px] text-[#272343]">
+              <strong>{Object.keys(categoryCounts).length - 1}</strong> Categories
+            </span>
+            <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-200 font-mono text-[11px]">
+              100% Free Code
+            </span>
+          </div>
         </div>
 
         {/* Controls Bar: Smart Search & Sort */}

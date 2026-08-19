@@ -101,6 +101,25 @@ export function ResourceManager({
         </Button>
       </div>
 
+      {/* Quick Catalog Stats Chips */}
+      <div className="flex flex-wrap items-center gap-2 text-xs border-b border-[#BAE8E8]/60 pb-3">
+        <span className="font-semibold text-[#272343] text-xs">Overview:</span>
+        <span className="px-2.5 py-0.5 rounded-full bg-[#E3F6F5] border border-[#BAE8E8] text-[#272343] font-mono text-[11px]">
+          <strong>{resources.length}</strong> Total
+        </span>
+        <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-[11px]">
+          <strong>{resources.filter((r) => r.status === "published").length}</strong> Published
+        </span>
+        <span className="px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 font-mono text-[11px]">
+          <strong>{resources.filter((r) => r.status === "draft").length}</strong> Drafts
+        </span>
+        {filteredResources.length !== resources.length && (
+          <span className="px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-800 font-mono text-[11px]">
+            Showing <strong>{filteredResources.length}</strong> filtered
+          </span>
+        )}
+      </div>
+
       {/* Filter Controls Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
         {/* Search */}

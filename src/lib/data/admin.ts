@@ -8,6 +8,31 @@ export interface AdminStats {
   totalCount: number;
 }
 
+export interface ResourceDistributionItem {
+  name: string;
+  count: number;
+  percentage: number;
+}
+
+export interface ResourceTagCount {
+  tag: string;
+  count: number;
+}
+
+export interface ResourceDetailedStats {
+  totalCount: number;
+  publishedCount: number;
+  draftCount: number;
+  categoryCount: number;
+  publishedRatio: number;
+  desktopCount: number;
+  tabletCount: number;
+  mobileCount: number;
+  categories: ResourceDistributionItem[];
+  technologies: ResourceDistributionItem[];
+  topTags: ResourceTagCount[];
+}
+
 export interface AdminCategoryWithCount extends Category {
   resourceCount: number;
 }
@@ -216,3 +241,82 @@ export async function getAllAdminCategories(): Promise<AdminCategoryWithCount[]>
     return [];
   }
 }
+
+export async function getDetailedResourceStats(): Promise<ResourceDetailedStats> {
+  const [resources, categories] = await Promise.all([
+    getAllAdminResources(),
+    getAllAdminCategories(),
+  ]);
+
+  const totalCount = resources.length;
+  const publishedCount = resources.filter((r) => r.status === "published").length;
+  const draftCount = resources.filter((r) => r.status === "draft").length;
+  const categoryCount = categories.length;
+
+  const publishedRatio = totalCount > 0 ? Math.round((publishedCount / totalCount) * 100) : 0;
+
+  const desktopCount = resources.filter((r) => r.responsive.desktop).length;
+  const tabletCount = resources.filter((r) => r.responsive.tablet).length;
+  const mobileCount = resources.filter((r) => r.responsive.mobile).length;
+
+  // Category distribution
+  const catMap: Record<string, number> = {};
+  resources.forEach((r) => {
+    const catName = r.category || "Uncategorized";
+    catMap[catName] = (catMap[catName] || 0) + 1;
+  });
+
+  const categoryDistribution: ResourceDistributionItem[] = Object.entries(catMap)
+    .map(([name, count]) => ({
+      name,
+      count,
+      percentage: totalCount > 0 ? Math.round((count / totalCount) * 100) : 0,
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  // Tech distribution
+  const techMap: Record<string, number> = {};
+  resources.forEach((r) => {
+    const techName = r.technology || "Other";
+    techMap[techName] = (techMap[techName] || 0) + 1;
+  });
+
+  const technologyDistribution: ResourceDistributionItem[] = Object.entries(techMap)
+    .map(([name, count]) => ({
+      name,
+      count,
+      percentage: totalCount > 0 ? Math.round((count / totalCount) * 100) : 0,
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  // Tag frequency
+  const tagMap: Record<string, number> = {};
+  resources.forEach((r) => {
+    (r.tags || []).forEach((t) => {
+      const cleanTag = t.trim().toLowerCase();
+      if (cleanTag) {
+        tagMap[cleanTag] = (tagMap[cleanTag] || 0) + 1;
+      }
+    });
+  });
+
+  const topTags: ResourceTagCount[] = Object.entries(tagMap)
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  return {
+    totalCount,
+    publishedCount,
+    draftCount,
+    categoryCount,
+    publishedRatio,
+    desktopCount,
+    tabletCount,
+    mobileCount,
+    categories: categoryDistribution,
+    technologies: technologyDistribution,
+    topTags,
+  };
+}
+
