@@ -106,9 +106,10 @@ export function DeveloperSuggestion() {
       // Reset form state cleanly
       setSelectedType(null);
       setDescription("");
-      setIsSubmitting(false);
-    } catch {
-      toast.error("Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      console.error("Developer suggestion submission error:", err);
+      const errMsg = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      toast.error(errMsg);
       setIsSubmitting(false);
     }
   };
