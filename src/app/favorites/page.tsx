@@ -25,14 +25,22 @@ export default function FavoritesPage() {
 
   const filteredItems = React.useMemo(() => {
     if (!searchQuery.trim()) return favoriteItems;
-    const q = searchQuery.toLowerCase().trim();
-    return favoriteItems.filter(
-      (item) =>
-        item.title.toLowerCase().includes(q) ||
-        item.slug.toLowerCase().includes(q) ||
-        item.category?.toLowerCase().includes(q) ||
-        item.technology?.toLowerCase().includes(q)
-    );
+    const tokens = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+
+    return favoriteItems.filter((item) => {
+      const titleLower = item.title.toLowerCase();
+      const slugLower = item.slug.toLowerCase();
+      const catLower = (item.category || "").toLowerCase();
+      const techLower = (item.technology || "").toLowerCase();
+
+      return tokens.every(
+        (t) =>
+          titleLower.includes(t) ||
+          slugLower.includes(t) ||
+          catLower.includes(t) ||
+          techLower.includes(t)
+      );
+    });
   }, [favoriteItems, searchQuery]);
 
   return (
@@ -76,14 +84,14 @@ export default function FavoritesPage() {
           </div>
 
           {/* Search Bar for Favorites (if multiple items) */}
-          {favoriteItems.length > 3 && (
+          {favoriteItems.length > 2 && (
             <div className="max-w-md relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2D334A]/50" />
               <Input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Filter your saved favorites..."
+                placeholder="Search within saved favorites (e.g. 'button', 'navbar')..."
                 className="pl-10 pr-10 h-10 bg-white border-[#BAE8E8] shadow-soft-sm text-xs"
                 aria-label="Filter saved favorites"
               />
@@ -166,18 +174,31 @@ export default function FavoritesPage() {
               </div>
               <div className="space-y-1.5">
                 <h3 className="text-lg font-heading font-bold text-[#272343]">
-                  No Bookmarked Favorites
+                  {searchQuery ? "No Matching Favorites Found" : "No Bookmarked Favorites"}
                 </h3>
                 <p className="text-xs text-[#2D334A]/80 leading-relaxed max-w-xs mx-auto">
-                  You haven&apos;t saved any components to your favorites yet. Click the bookmark icon on any component in the library to save it here.
+                  {searchQuery
+                    ? `No saved components match "${searchQuery}". Try clearing the search.`
+                    : "You haven't saved any components to your favorites yet. Click the bookmark icon on any component in the library to save it here."}
                 </p>
               </div>
-              <Button asChild variant="primary" size="default" className="font-semibold shadow-soft-sm">
-                <Link href="/library" className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4" />
-                  <span>Browse Component Library</span>
-                </Link>
-              </Button>
+              {searchQuery ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSearchQuery("")}
+                >
+                  Clear Search
+                </Button>
+              ) : (
+                <Button asChild variant="primary" size="default" className="font-semibold shadow-soft-sm">
+                  <Link href="/library" className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    <span>Browse Component Library</span>
+                  </Link>
+                </Button>
+              )}
             </div>
           )}
         </Container>

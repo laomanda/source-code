@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useSearchParams } from "next/navigation";
 import { Resource, CategoryType } from "@/types";
 import { ResourceCard } from "@/components/library/resource-card";
 import { EmptyState } from "@/components/library/empty-state";
@@ -8,26 +9,68 @@ import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useFavorites } from "@/lib/hooks/use-favorites";
+import { smartSearchResources } from "@/lib/search/smart-search";
 import {
   Search,
   X,
   Layers,
   ArrowUpDown,
   Bookmark,
+  Sparkles,
 } from "lucide-react";
 
 export interface LibraryViewProps {
   initialResources?: Resource[];
 }
 
+const POPULAR_SEARCH_KEYWORDS = [
+  "Button",
+  "Navbar",
+  "Hero",
+  "Canvas",
+  "Responsive",
+  "Tailwind",
+];
+
 export function LibraryView({ initialResources = [] }: LibraryViewProps) {
-  const [searchQuery, setSearchQuery] = React.useState("");
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("search") || "";
+
+  const [searchQuery, setSearchQuery] = React.useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = React.useState<"All" | CategoryType>("All");
   const [selectedTechnology, setSelectedTechnology] = React.useState<string>("All");
   const [showFavoritesOnly, setShowFavoritesOnly] = React.useState(false);
-  const [sortBy, setSortBy] = React.useState<"newest" | "alpha" | "oldest">("newest");
+  const [sortBy, setSortBy] = React.useState<"newest" | "relevance" | "alpha" | "oldest">(
+    initialQuery ? "relevance" : "newest"
+  );
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   const { favorites, isLoaded } = useFavorites();
+
+  // Sync initial query from URL search params if present
+  React.useEffect(() => {
+    const q = searchParams.get("search");
+    if (q) {
+      setSearchQuery(q);
+      setSortBy("relevance");
+    }
+  }, [searchParams]);
+
+  // Focus shortcut listener ('/' key)
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === "/" &&
+        document.activeElement?.tagName !== "INPUT" &&
+        document.activeElement?.tagName !== "TEXTAREA"
+      ) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Distinct technologies from dataset
   const techOptions = React.useMemo(() => {
@@ -51,41 +94,50 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
     return counts;
   }, [initialResources]);
 
-  // Filter and sort resources
+  // Filter and sort resources using Smart Search Engine
   const filteredResources = React.useMemo(() => {
-    let result = initialResources;
+    let baseList = initialResources;
 
     // Favorites only filter
     if (showFavoritesOnly) {
-      result = result.filter((r) => favorites.includes(r.slug));
+      baseList = baseList.filter((r) => favorites.includes(r.slug));
     }
 
     // Category filter
     if (selectedCategory !== "All") {
-      result = result.filter((r) => r.category === selectedCategory);
+      baseList = baseList.filter((r) => r.category === selectedCategory);
     }
 
     // Technology filter
     if (selectedTechnology !== "All") {
-      result = result.filter((r) =>
+      baseList = baseList.filter((r) =>
         r.technology.toLowerCase().includes(selectedTechnology.toLowerCase())
       );
     }
 
-    // Search query
+    // Smart Search Query Evaluation
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter(
-        (r) =>
-          r.title.toLowerCase().includes(q) ||
-          r.description.toLowerCase().includes(q) ||
-          r.technology.toLowerCase().includes(q) ||
-          r.tags.some((tag) => tag.toLowerCase().includes(q))
-      );
+      const searchResults = smartSearchResources(baseList, searchQuery);
+
+      if (sortBy === "relevance") {
+        return searchResults.map((res) => res.item);
+      }
+
+      // If user selected specific sort order (e.g. newest / alpha / oldest)
+      const matchingItems = searchResults.map((res) => res.item);
+      return [...matchingItems].sort((a, b) => {
+        if (sortBy === "alpha") {
+          return a.title.localeCompare(b.title);
+        }
+        if (sortBy === "oldest") {
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        }
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
     }
 
-    // Sorting
-    return [...result].sort((a, b) => {
+    // Standard Sorting when no search query
+    return [...baseList].sort((a, b) => {
       if (sortBy === "alpha") {
         return a.title.localeCompare(b.title);
       }
@@ -134,47 +186,95 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
           </p>
         </div>
 
-        {/* Controls Bar: Search & Sort */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-          {/* Global Search Input */}
-          <div className="md:col-span-8 relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2D334A]/50" />
-            <Input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by title, description, technology (e.g. React), or tag..."
-              className="pl-10 pr-10 h-11 bg-white border-[#BAE8E8] shadow-soft-sm text-sm"
-              aria-label="Search resources"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#2D334A]/60 hover:text-[#272343] rounded"
-                aria-label="Clear search query"
+        {/* Controls Bar: Smart Search & Sort */}
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+            {/* Smart Search Input with Shortcut and Clear */}
+            <div className="md:col-span-8 relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2D334A]/50" />
+              <Input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (e.target.value && sortBy === "newest") {
+                    setSortBy("relevance");
+                  }
+                }}
+                placeholder="Smart Search (e.g. 'button react', 'hero banner', 'navbar mobile')..."
+                className="pl-10 pr-20 h-11 bg-white border-[#BAE8E8] shadow-soft-sm text-sm"
+                aria-label="Smart search resources"
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery("");
+                      searchInputRef.current?.focus();
+                    }}
+                    className="p-1 text-[#2D334A]/60 hover:text-[#272343] rounded"
+                    aria-label="Clear search query"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-[#2D334A]/60 bg-[#E3F6F5] border border-[#BAE8E8] rounded shadow-soft-xs">
+                    /
+                  </kbd>
+                )}
+              </div>
+            </div>
+
+            {/* Sort Selector */}
+            <div className="md:col-span-4 flex items-center justify-end gap-2">
+              <span className="text-xs text-[#2D334A]/70 flex items-center gap-1 whitespace-nowrap">
+                <ArrowUpDown className="h-3.5 w-3.5" />
+                <span>Sort:</span>
+              </span>
+              <select
+                value={sortBy}
+                onChange={(e) =>
+                  setSortBy(
+                    e.target.value as "newest" | "relevance" | "alpha" | "oldest"
+                  )
+                }
+                className="h-11 rounded-md border border-[#BAE8E8] bg-white px-3 py-2 text-xs font-medium text-[#272343] shadow-soft-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343]"
+                aria-label="Sort resources"
               >
-                <X className="h-4 w-4" />
-              </button>
-            )}
+                {searchQuery && <option value="relevance">Most Relevant</option>}
+                <option value="newest">Newest First</option>
+                <option value="alpha">Alphabetical (A–Z)</option>
+                <option value="oldest">Oldest First</option>
+              </select>
+            </div>
           </div>
 
-          {/* Sort Selector */}
-          <div className="md:col-span-4 flex items-center justify-end gap-2">
-            <span className="text-xs text-[#2D334A]/70 flex items-center gap-1 whitespace-nowrap">
-              <ArrowUpDown className="h-3.5 w-3.5" />
-              <span>Sort:</span>
+          {/* Popular Suggestions Quick Pills */}
+          <div className="flex flex-wrap items-center gap-1.5 text-xs text-[#2D334A]/70">
+            <span className="inline-flex items-center gap-1 font-semibold text-[#272343] mr-1 text-[11px]">
+              <Sparkles className="h-3 w-3 text-[#0D6E6E]" />
+              Popular:
             </span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as "newest" | "alpha" | "oldest")}
-              className="h-11 rounded-md border border-[#BAE8E8] bg-white px-3 py-2 text-xs font-medium text-[#272343] shadow-soft-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343]"
-              aria-label="Sort resources"
-            >
-              <option value="newest">Newest First</option>
-              <option value="alpha">Alphabetical (A–Z)</option>
-              <option value="oldest">Oldest First</option>
-            </select>
+            {POPULAR_SEARCH_KEYWORDS.map((kw) => (
+              <button
+                key={kw}
+                type="button"
+                onClick={() => {
+                  setSearchQuery(kw);
+                  setSortBy("relevance");
+                  searchInputRef.current?.focus();
+                }}
+                className={`px-2 py-0.5 rounded-md border text-[11px] font-medium transition-colors ${
+                  searchQuery.toLowerCase() === kw.toLowerCase()
+                    ? "bg-[#FFD803] border-[#F2CD00] text-[#272343] font-bold"
+                    : "bg-[#FBFDFD] border-[#BAE8E8] text-[#2D334A] hover:bg-[#E3F6F5] hover:text-[#272343]"
+                }`}
+              >
+                {kw}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -281,6 +381,11 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
               <span className="inline-flex items-center gap-1 font-semibold text-[#0D6E6E] bg-[#E3F6F5] px-2 py-0.5 rounded">
                 <Bookmark className="h-3 w-3 fill-[#0D6E6E]" />
                 Bookmarked
+              </span>
+            )}
+            {searchQuery && (
+              <span className="inline-flex items-center gap-1 font-mono text-[11px] text-[#272343] bg-[#E3F6F5] border border-[#BAE8E8] px-2 py-0.5 rounded">
+                &ldquo;{searchQuery}&rdquo;
               </span>
             )}
             <span className="font-semibold text-[#272343]">
