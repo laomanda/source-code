@@ -20,8 +20,34 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "JakDev — Free Source Code Library",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://jakdev.com"),
+  title: {
+    default: "JakDev — Free Source Code Library",
+    template: "%s | JakDev",
+  },
   description: "Browse, preview, copy, and build with free source code for modern web interfaces.",
+  openGraph: {
+    title: "JakDev — Free Source Code Library",
+    description: "Browse, preview, copy, and build with free source code for modern web interfaces.",
+    url: "https://jakdev.com",
+    siteName: "JakDev",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "JakDev — Free Source Code Library for Developers",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "JakDev — Free Source Code Library",
+    description: "Browse, preview, copy, and build with free source code for modern web interfaces.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({
