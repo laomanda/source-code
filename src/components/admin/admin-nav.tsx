@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Layers,
   FolderTree,
+  Lightbulb,
   ExternalLink,
   LogOut,
 } from "lucide-react";
@@ -30,6 +31,7 @@ export function AdminNav({ userEmail }: AdminNavProps) {
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { label: "Resources", href: "/admin/resources", icon: Layers },
     { label: "Categories", href: "/admin/categories", icon: FolderTree },
+    { label: "Suggestions", href: "/admin/suggestions", icon: Lightbulb },
   ];
 
   return (

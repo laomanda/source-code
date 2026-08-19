@@ -33,6 +33,9 @@ export function Footer() {
             <a href="#how-it-works" className="hover:text-[#272343] transition-colors">
               How It Works
             </a>
+            <a href="#suggest" className="hover:text-[#272343] transition-colors">
+              Suggest
+            </a>
             <a href="#support" className="hover:text-[#272343] transition-colors">
               Support
             </a>

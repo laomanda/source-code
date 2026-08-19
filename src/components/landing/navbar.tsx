@@ -22,6 +22,7 @@ export function Navbar() {
     { label: "Favorites", href: "/favorites" },
     { label: "Showcase", href: "/#showcase" },
     { label: "How It Works", href: "/#how-it-works" },
+    { label: "Suggest", href: "/#suggest" },
   ];
 
   return (

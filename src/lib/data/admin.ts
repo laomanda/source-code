@@ -6,6 +6,7 @@ export interface AdminStats {
   draftCount: number;
   categoryCount: number;
   totalCount: number;
+  suggestionCount: number;
 }
 
 export interface ResourceDistributionItem {
@@ -24,6 +25,7 @@ export interface ResourceDetailedStats {
   publishedCount: number;
   draftCount: number;
   categoryCount: number;
+  suggestionCount: number;
   publishedRatio: number;
   desktopCount: number;
   tabletCount: number;
@@ -63,25 +65,28 @@ export async function getAdminStats(): Promise<AdminStats> {
   try {
     const supabase = await createClient();
 
-    const [publishedRes, draftRes, categoriesRes] = await Promise.all([
+    const [publishedRes, draftRes, categoriesRes, suggestionsRes] = await Promise.all([
       supabase.from("resources").select("*", { count: "exact", head: true }).eq("status", "published"),
       supabase.from("resources").select("*", { count: "exact", head: true }).eq("status", "draft"),
       supabase.from("categories").select("*", { count: "exact", head: true }),
+      supabase.from("developer_suggestions").select("*", { count: "exact", head: true }),
     ]);
 
     const publishedCount = publishedRes.count || 0;
     const draftCount = draftRes.count || 0;
     const categoryCount = categoriesRes.count || 0;
+    const suggestionCount = suggestionsRes.count || 0;
 
     return {
       publishedCount,
       draftCount,
       categoryCount,
       totalCount: publishedCount + draftCount,
+      suggestionCount,
     };
   } catch (err) {
     console.error("Error fetching admin stats:", err);
-    return { publishedCount: 0, draftCount: 0, categoryCount: 0, totalCount: 0 };
+    return { publishedCount: 0, draftCount: 0, categoryCount: 0, totalCount: 0, suggestionCount: 0 };
   }
 }
 
@@ -243,15 +248,27 @@ export async function getAllAdminCategories(): Promise<AdminCategoryWithCount[]>
 }
 
 export async function getDetailedResourceStats(): Promise<ResourceDetailedStats> {
-  const [resources, categories] = await Promise.all([
+  const [resources, categories, suggestionsCount] = await Promise.all([
     getAllAdminResources(),
     getAllAdminCategories(),
+    (async () => {
+      try {
+        const supabase = await createClient();
+        const { count } = await supabase
+          .from("developer_suggestions")
+          .select("*", { count: "exact", head: true });
+        return count || 0;
+      } catch {
+        return 0;
+      }
+    })(),
   ]);
 
   const totalCount = resources.length;
   const publishedCount = resources.filter((r) => r.status === "published").length;
   const draftCount = resources.filter((r) => r.status === "draft").length;
   const categoryCount = categories.length;
+  const suggestionCount = suggestionsCount;
 
   const publishedRatio = totalCount > 0 ? Math.round((publishedCount / totalCount) * 100) : 0;
 
@@ -310,6 +327,7 @@ export async function getDetailedResourceStats(): Promise<ResourceDetailedStats>
     publishedCount,
     draftCount,
     categoryCount,
+    suggestionCount,
     publishedRatio,
     desktopCount,
     tabletCount,

@@ -98,6 +98,27 @@ export interface Database {
           }
         ];
       };
+      developer_suggestions: {
+        Row: {
+          id: string;
+          type: "component" | "block" | "page" | "template" | "ui_design" | "feature" | "improvement" | "other";
+          description: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          type: "component" | "block" | "page" | "template" | "ui_design" | "feature" | "improvement" | "other";
+          description: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          type?: "component" | "block" | "page" | "template" | "ui_design" | "feature" | "improvement" | "other";
+          description?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

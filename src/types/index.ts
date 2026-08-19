@@ -31,3 +31,21 @@ export interface Resource {
   createdAt: string;
   updatedAt?: string;
 }
+
+export type SuggestionType =
+  | "component"
+  | "block"
+  | "page"
+  | "template"
+  | "ui_design"
+  | "feature"
+  | "improvement"
+  | "other";
+
+export interface DeveloperSuggestion {
+  id: string;
+  type: SuggestionType;
+  description: string;
+  createdAt: string;
+}
+

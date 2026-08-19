@@ -4,15 +4,16 @@ import { Hero } from "@/components/landing/hero";
 import { ResourceShowcase } from "@/components/landing/resource-showcase";
 import { Introduction } from "@/components/landing/introduction";
 import { HowItWorks } from "@/components/landing/how-it-works";
+import { DeveloperSuggestion } from "@/components/landing/developer-suggestion";
 import { Support } from "@/components/landing/support";
 import { Footer } from "@/components/landing/footer";
 
 export const metadata: Metadata = {
-  title: "JakDev — Free Source Code Library for Developers",
+  title: "JakDev",
   description:
     "Discover, preview, and copy free source code for modern web interfaces. Reusable UI components, blocks, and templates built with HTML, Tailwind CSS, React, and TypeScript.",
   openGraph: {
-    title: "JakDev — Free Source Code Library for Developers",
+    title: "JakDev",
     description:
       "Discover, preview, and copy free source code for modern web interfaces.",
     type: "website",
@@ -28,6 +29,7 @@ export default function LandingPage() {
         <ResourceShowcase />
         <Introduction />
         <HowItWorks />
+        <DeveloperSuggestion />
         <Support />
       </main>
       <Footer />

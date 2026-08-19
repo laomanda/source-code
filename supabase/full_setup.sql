@@ -531,3 +531,61 @@ SET
   responsive_mobile = EXCLUDED.responsive_mobile,
   status = EXCLUDED.status,
   updated_at = now();
+
+-- ==============================================================================
+-- 7. Developer Suggestions Schema & RLS Policies
+-- ==============================================================================
+
+CREATE TABLE IF NOT EXISTS public.developer_suggestions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  type TEXT NOT NULL CHECK (
+    type IN (
+      'component',
+      'block',
+      'page',
+      'template',
+      'ui_design',
+      'feature',
+      'improvement',
+      'other'
+    )
+  ),
+  description TEXT NOT NULL CHECK (
+    char_length(trim(description)) >= 5 AND char_length(description) <= 2000
+  ),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_developer_suggestions_created_at 
+  ON public.developer_suggestions (created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_developer_suggestions_type 
+  ON public.developer_suggestions (type);
+
+ALTER TABLE public.developer_suggestions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow anonymous insert on developer_suggestions" ON public.developer_suggestions;
+CREATE POLICY "Allow anonymous insert on developer_suggestions"
+ON public.developer_suggestions
+FOR INSERT
+TO anon, authenticated, public
+WITH CHECK (
+  char_length(trim(description)) >= 5 AND 
+  char_length(description) <= 2000 AND
+  type IN ('component', 'block', 'page', 'template', 'ui_design', 'feature', 'improvement', 'other')
+);
+
+DROP POLICY IF EXISTS "Allow authenticated select on developer_suggestions" ON public.developer_suggestions;
+CREATE POLICY "Allow authenticated select on developer_suggestions"
+ON public.developer_suggestions
+FOR SELECT
+TO authenticated
+USING (auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Allow authenticated delete on developer_suggestions" ON public.developer_suggestions;
+CREATE POLICY "Allow authenticated delete on developer_suggestions"
+ON public.developer_suggestions
+FOR DELETE
+TO authenticated
+USING (auth.role() = 'authenticated');
+

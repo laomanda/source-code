@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import Link from "next/link";
 import { ResourceDetailedStats } from "@/lib/data/admin";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import {
   FileCheck2,
   FileClock,
   FolderTree,
+  Lightbulb,
   Monitor,
   Tablet,
   Smartphone,
@@ -25,8 +26,8 @@ export interface ResourceStatisticsProps {
 export function ResourceStatistics({ stats }: ResourceStatisticsProps) {
   return (
     <div className="space-y-6">
-      {/* 4 Quick Stat KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 5 Quick Stat KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Total Resources */}
         <Card className="border-[#BAE8E8] bg-white shadow-soft">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -98,6 +99,27 @@ export function ResourceStatistics({ stats }: ResourceStatisticsProps) {
             </p>
           </CardContent>
         </Card>
+
+        {/* Developer Suggestions */}
+        <Link href="/admin/suggestions" className="group">
+          <Card className="border-[#BAE8E8] bg-white shadow-soft transition-all duration-150 group-hover:border-[#272343] group-hover:shadow-soft-md h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-semibold text-[#2D334A]/70 uppercase font-mono group-hover:text-[#272343]">
+                Suggestions
+              </CardTitle>
+              <div className="h-8 w-8 rounded-lg bg-[#FFD803] text-[#272343] flex items-center justify-center font-bold">
+                <Lightbulb className="h-4 w-4" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-[#272343]">{stats.suggestionCount || 0}</div>
+              <p className="text-[11px] text-[#2D334A]/70 mt-1 flex items-center gap-1 group-hover:text-[#272343] font-medium">
+                <span>Community ideas</span>
+                <span className="text-[#0D6E6E]">→</span>
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Two-Column Deep Distribution Breakdowns */}
