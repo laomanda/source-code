@@ -36,9 +36,6 @@ export function Footer() {
             <a href="#support" className="hover:text-[#272343] transition-colors">
               Support
             </a>
-            <Link href="/design-system" className="hover:text-[#272343] transition-colors text-xs text-[#2D334A]/50">
-              [Design System]
-            </Link>
           </nav>
         </div>
 
