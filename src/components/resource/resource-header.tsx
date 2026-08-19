@@ -30,6 +30,8 @@ export function ResourceHeader({ resource }: ResourceHeaderProps) {
         <FavoriteButton
           slug={resource.slug}
           title={resource.title}
+          category={resource.category}
+          technology={resource.technology}
           showLabel
           variant="outline"
           className="shadow-soft-sm"

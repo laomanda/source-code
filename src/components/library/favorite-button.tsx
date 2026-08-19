@@ -8,6 +8,8 @@ import { Bookmark } from "lucide-react";
 export interface FavoriteButtonProps {
   slug: string;
   title?: string;
+  category?: string;
+  technology?: string;
   showLabel?: boolean;
   size?: "sm" | "default" | "icon-sm";
   variant?: "ghost" | "outline" | "primary" | "secondary";
@@ -17,6 +19,8 @@ export interface FavoriteButtonProps {
 export function FavoriteButton({
   slug,
   title,
+  category,
+  technology,
   showLabel = false,
   size = "icon-sm",
   variant = "outline",
@@ -28,7 +32,12 @@ export function FavoriteButton({
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleFavorite(slug, title);
+    toggleFavorite({
+      slug,
+      title: title || slug,
+      category,
+      technology,
+    });
   };
 
   return (

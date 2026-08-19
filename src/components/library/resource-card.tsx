@@ -36,7 +36,12 @@ export function ResourceCard({ resource }: ResourceCardProps) {
               </div>
 
               {/* 1-Click Bookmark / Favorite Button */}
-              <FavoriteButton slug={resource.slug} title={resource.title} />
+              <FavoriteButton
+                slug={resource.slug}
+                title={resource.title}
+                category={resource.category}
+                technology={resource.technology}
+              />
             </div>
           </div>
 

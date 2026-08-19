@@ -9,17 +9,17 @@ import { Menu, X, ArrowRight, Sparkles, Bookmark } from "lucide-react";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const { favoriteCount, isLoaded } = useFavorites();
+  const { favoriteCount, isLoaded, openDrawer } = useFavorites();
 
   const navLinks = [
     { label: "Library", href: "/library" },
-    { label: "Showcase", href: "#showcase" },
-    { label: "How It Works", href: "#how-it-works" },
-    { label: "Support", href: "#support" },
+    { label: "Showcase", href: "/#showcase" },
+    { label: "How It Works", href: "/#how-it-works" },
+    { label: "Support", href: "/#support" },
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[#BAE8E8] bg-white/95 backdrop-blur-sm shadow-soft-sm">
+    <header className="sticky top-0 z-40 w-full border-b border-[#BAE8E8] bg-white/95 backdrop-blur-sm shadow-soft-sm">
       <Container size="xl" className="flex h-16 items-center justify-between">
         {/* Brand Logo */}
         <Link
@@ -53,21 +53,31 @@ export function Navbar() {
         </nav>
 
         {/* Desktop CTA & Favorites Shortcut */}
-        <div className="hidden md:flex items-center gap-3">
-          {isLoaded && favoriteCount > 0 && (
-            <Button asChild variant="outline" size="sm" className="gap-1.5 bg-white border-[#BAE8E8] text-xs">
-              <Link href="/library" title="View your bookmarked favorites in Library">
-                <Bookmark className="h-3.5 w-3.5 fill-[#FFD803] text-[#272343]" />
-                <span>Favorites</span>
-                <span className="h-4 min-w-[16px] px-1 rounded-full bg-[#272343] text-[#FFD803] text-[10px] font-mono font-bold flex items-center justify-center">
-                  {favoriteCount}
-                </span>
-              </Link>
-            </Button>
-          )}
+        <div className="hidden md:flex items-center gap-2.5">
+          {/* Favorites Drawer Trigger Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={openDrawer}
+            className="gap-1.5 bg-white border-[#BAE8E8] text-xs hover:border-[#8CD3D3]"
+            title="Open your bookmarked favorites drawer"
+          >
+            <Bookmark
+              className={`h-3.5 w-3.5 transition-colors ${
+                isLoaded && favoriteCount > 0 ? "fill-[#FFD803] text-[#272343]" : "text-[#2D334A]/70"
+              }`}
+            />
+            <span>Favorites</span>
+            {isLoaded && favoriteCount > 0 && (
+              <span className="h-4 min-w-[16px] px-1 rounded-full bg-[#272343] text-[#FFD803] text-[10px] font-mono font-bold flex items-center justify-center">
+                {favoriteCount}
+              </span>
+            )}
+          </Button>
 
           <Button asChild variant="primary" size="default" className="shadow-soft-sm">
-            <Link href="/library" className="flex items-center gap-1.5">
+            <Link href="/library" className="flex items-center gap-1.5 font-semibold">
               <span>Browse Library</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -102,14 +112,22 @@ export function Navbar() {
             ))}
           </nav>
           <div className="pt-2 border-t border-[#BAE8E8]/60 space-y-2">
-            {isLoaded && favoriteCount > 0 && (
-              <Button asChild variant="outline" className="w-full justify-center gap-2">
-                <Link href="/library" onClick={() => setMobileMenuOpen(false)}>
-                  <Bookmark className="h-4 w-4 fill-[#FFD803] text-[#272343]" />
-                  <span>My Favorites ({favoriteCount})</span>
-                </Link>
-              </Button>
-            )}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                openDrawer();
+              }}
+              className="w-full justify-center gap-2"
+            >
+              <Bookmark
+                className={`h-4 w-4 ${
+                  isLoaded && favoriteCount > 0 ? "fill-[#FFD803] text-[#272343]" : "text-[#2D334A]/70"
+                }`}
+              />
+              <span>My Favorites ({isLoaded ? favoriteCount : 0})</span>
+            </Button>
             <Button asChild variant="primary" className="w-full justify-center">
               <Link href="/library" onClick={() => setMobileMenuOpen(false)}>
                 <Sparkles className="h-4 w-4 mr-2" />
