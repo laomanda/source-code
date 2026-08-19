@@ -136,8 +136,21 @@ export function ResourceForm({
       router.refresh();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save resource.";
-      setFormError(msg);
-      toast.error(msg);
+      if (
+        msg.includes("Server Action") ||
+        msg.includes("was not found") ||
+        msg.includes("UnrecognizedActionError")
+      ) {
+        toast.error("Development server updated. Refreshing page...", {
+          description: "Reloading page to synchronize latest server actions.",
+        });
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        setFormError(msg);
+        toast.error(msg);
+      }
       setIsSubmitting(false);
     }
   };

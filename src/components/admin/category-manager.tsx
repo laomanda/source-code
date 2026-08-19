@@ -104,27 +104,46 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     formData.append("slug", slug);
     formData.append("description", description);
 
-    if (editingCategory) {
-      const res = await updateCategoryAction(editingCategory.id, null, formData);
-      if (res.error) {
-        setErrorMessage(res.error);
-        toast.error(res.error);
+    try {
+      if (editingCategory) {
+        const res = await updateCategoryAction(editingCategory.id, null, formData);
+        if (res.error) {
+          setErrorMessage(res.error);
+          toast.error(res.error);
+        } else {
+          toast.success(`Category "${name}" updated successfully.`);
+          closeModal();
+        }
       } else {
-        toast.success(`Category "${name}" updated successfully.`);
-        closeModal();
+        const res = await createCategoryAction(null, formData);
+        if (res.error) {
+          setErrorMessage(res.error);
+          toast.error(res.error);
+        } else {
+          toast.success(`Category "${name}" created successfully.`);
+          closeModal();
+        }
       }
-    } else {
-      const res = await createCategoryAction(null, formData);
-      if (res.error) {
-        setErrorMessage(res.error);
-        toast.error(res.error);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to process category.";
+      if (
+        msg.includes("Server Action") ||
+        msg.includes("was not found") ||
+        msg.includes("UnrecognizedActionError")
+      ) {
+        toast.error("Development server updated. Refreshing page...", {
+          description: "Reloading page to synchronize latest server actions.",
+        });
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
-        toast.success(`Category "${name}" created successfully.`);
-        closeModal();
+        setErrorMessage(msg);
+        toast.error(msg);
       }
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const handleOpenDelete = (cat: AdminCategoryWithCount) => {
@@ -141,15 +160,34 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     if (!categoryToDelete) return;
 
     setIsDeleting(true);
-    const res = await deleteCategoryAction(categoryToDelete.id);
-    if (res.error) {
-      toast.error(res.error);
-    } else {
-      toast.success(`Category "${categoryToDelete.name}" deleted.`);
-      setCategories((prev) => prev.filter((c) => c.id !== categoryToDelete.id));
+    try {
+      const res = await deleteCategoryAction(categoryToDelete.id);
+      if (res.error) {
+        toast.error(res.error);
+      } else {
+        toast.success(`Category "${categoryToDelete.name}" deleted.`);
+        setCategories((prev) => prev.filter((c) => c.id !== categoryToDelete.id));
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete category.";
+      if (
+        msg.includes("Server Action") ||
+        msg.includes("was not found") ||
+        msg.includes("UnrecognizedActionError")
+      ) {
+        toast.error("Development server updated. Refreshing page...", {
+          description: "Reloading page to synchronize latest server actions.",
+        });
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setIsDeleting(false);
+      setCategoryToDelete(null);
     }
-    setIsDeleting(false);
-    setCategoryToDelete(null);
   };
 
   return (

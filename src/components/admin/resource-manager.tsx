@@ -71,15 +71,34 @@ export function ResourceManager({
     if (!resourceToDelete) return;
 
     setIsDeleting(true);
-    const res = await deleteResourceAction(resourceToDelete.id);
-    if (res.error) {
-      toast.error(res.error);
-    } else {
-      toast.success(`Resource "${resourceToDelete.title}" deleted.`);
-      setResources((prev) => prev.filter((r) => r.id !== resourceToDelete.id));
+    try {
+      const res = await deleteResourceAction(resourceToDelete.id);
+      if (res.error) {
+        toast.error(res.error);
+      } else {
+        toast.success(`Resource "${resourceToDelete.title}" deleted.`);
+        setResources((prev) => prev.filter((r) => r.id !== resourceToDelete.id));
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete resource.";
+      if (
+        msg.includes("Server Action") ||
+        msg.includes("was not found") ||
+        msg.includes("UnrecognizedActionError")
+      ) {
+        toast.error("Development server updated. Refreshing page...", {
+          description: "Reloading page to synchronize latest server actions.",
+        });
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setIsDeleting(false);
+      setResourceToDelete(null);
     }
-    setIsDeleting(false);
-    setResourceToDelete(null);
   };
 
   return (
