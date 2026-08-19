@@ -40,7 +40,7 @@ export async function submitSuggestionAction(
 
     if (error) {
       console.error("Supabase insert error on developer_suggestions:", error.message);
-      return { error: "Failed to submit suggestion. Please try again." };
+      return { error: error.message || "Failed to submit suggestion. Please try again." };
     }
 
     revalidatePath("/admin/suggestions");

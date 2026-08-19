@@ -562,30 +562,30 @@ CREATE INDEX IF NOT EXISTS idx_developer_suggestions_created_at
 CREATE INDEX IF NOT EXISTS idx_developer_suggestions_type 
   ON public.developer_suggestions (type);
 
+GRANT ALL ON TABLE public.developer_suggestions TO anon, authenticated, service_role;
+
 ALTER TABLE public.developer_suggestions ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Allow anonymous insert on developer_suggestions" ON public.developer_suggestions;
-CREATE POLICY "Allow anonymous insert on developer_suggestions"
+DROP POLICY IF EXISTS "Allow public insert on developer_suggestions" ON public.developer_suggestions;
+CREATE POLICY "Allow public insert on developer_suggestions"
 ON public.developer_suggestions
 FOR INSERT
-TO anon, authenticated, public
-WITH CHECK (
-  char_length(trim(description)) >= 5 AND 
-  char_length(description) <= 2000 AND
-  type IN ('component', 'block', 'page', 'template', 'ui_design', 'feature', 'improvement', 'other')
-);
+TO anon, authenticated, service_role
+WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow authenticated select on developer_suggestions" ON public.developer_suggestions;
 CREATE POLICY "Allow authenticated select on developer_suggestions"
 ON public.developer_suggestions
 FOR SELECT
-TO authenticated
-USING (auth.role() = 'authenticated');
+TO authenticated, service_role
+USING (auth.role() = 'authenticated' OR auth.role() = 'service_role');
 
 DROP POLICY IF EXISTS "Allow authenticated delete on developer_suggestions" ON public.developer_suggestions;
 CREATE POLICY "Allow authenticated delete on developer_suggestions"
 ON public.developer_suggestions
 FOR DELETE
-TO authenticated
-USING (auth.role() = 'authenticated');
+TO authenticated, service_role
+USING (auth.role() = 'authenticated' OR auth.role() = 'service_role');
+
 
