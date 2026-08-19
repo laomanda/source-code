@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
-import { FavoritesDrawer } from "@/components/library/favorites-drawer";
 import "./globals.css";
 
 const geist = Geist({
@@ -35,7 +34,6 @@ export default function RootLayout({
         className={`${inter.variable} ${geist.variable} ${jetbrainsMono.variable} font-sans bg-background text-foreground antialiased min-h-screen`}
       >
         {children}
-        <FavoritesDrawer />
         <Toaster position="bottom-right" richColors toastOptions={{ style: { fontFamily: "var(--font-inter)" } }} />
       </body>
     </html>

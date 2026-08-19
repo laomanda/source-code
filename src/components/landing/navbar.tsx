@@ -9,13 +9,13 @@ import { Menu, X, ArrowRight, Sparkles, Bookmark } from "lucide-react";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const { favoriteCount, isLoaded, openDrawer } = useFavorites();
+  const { favoriteCount, isLoaded } = useFavorites();
 
   const navLinks = [
     { label: "Library", href: "/library" },
+    { label: "Favorites", href: "/favorites" },
     { label: "Showcase", href: "/#showcase" },
     { label: "How It Works", href: "/#how-it-works" },
-    { label: "Support", href: "/#support" },
   ];
 
   return (
@@ -45,37 +45,23 @@ export function Navbar() {
             <Link
               key={link.label}
               href={link.href}
-              className="text-sm font-medium text-[#2D334A] hover:text-[#272343] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] focus-visible:ring-offset-2 rounded px-1.5 py-1"
+              className="text-sm font-medium text-[#2D334A] hover:text-[#272343] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] focus-visible:ring-offset-2 rounded px-1.5 py-1 flex items-center gap-1.5"
             >
-              {link.label}
+              {link.label === "Favorites" && (
+                <Bookmark className={`h-3.5 w-3.5 ${isLoaded && favoriteCount > 0 ? "fill-[#FFD803] text-[#272343]" : "text-[#2D334A]/60"}`} />
+              )}
+              <span>{link.label}</span>
+              {link.label === "Favorites" && isLoaded && favoriteCount > 0 && (
+                <span className="h-4 min-w-[16px] px-1 rounded-full bg-[#272343] text-[#FFD803] text-[10px] font-mono font-bold flex items-center justify-center">
+                  {favoriteCount}
+                </span>
+              )}
             </Link>
           ))}
         </nav>
 
-        {/* Desktop CTA & Favorites Shortcut */}
+        {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-2.5">
-          {/* Favorites Drawer Trigger Button */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={openDrawer}
-            className="gap-1.5 bg-white border-[#BAE8E8] text-xs hover:border-[#8CD3D3]"
-            title="Open your bookmarked favorites drawer"
-          >
-            <Bookmark
-              className={`h-3.5 w-3.5 transition-colors ${
-                isLoaded && favoriteCount > 0 ? "fill-[#FFD803] text-[#272343]" : "text-[#2D334A]/70"
-              }`}
-            />
-            <span>Favorites</span>
-            {isLoaded && favoriteCount > 0 && (
-              <span className="h-4 min-w-[16px] px-1 rounded-full bg-[#272343] text-[#FFD803] text-[10px] font-mono font-bold flex items-center justify-center">
-                {favoriteCount}
-              </span>
-            )}
-          </Button>
-
           <Button asChild variant="primary" size="default" className="shadow-soft-sm">
             <Link href="/library" className="flex items-center gap-1.5 font-semibold">
               <span>Browse Library</span>
@@ -96,7 +82,7 @@ export function Navbar() {
         </button>
       </Container>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-[#BAE8E8] bg-white px-4 pt-2 pb-6 space-y-4 shadow-soft-md animate-in slide-in-from-top-2 duration-200">
           <nav className="flex flex-col space-y-2">
@@ -105,29 +91,23 @@ export function Navbar() {
                 key={link.label}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-md text-base font-medium text-[#272343] hover:bg-[#E3F6F5] transition-colors"
+                className="px-3 py-2.5 rounded-md text-base font-medium text-[#272343] hover:bg-[#E3F6F5] transition-colors flex items-center justify-between"
               >
-                {link.label}
+                <div className="flex items-center gap-2">
+                  {link.label === "Favorites" && (
+                    <Bookmark className={`h-4 w-4 ${isLoaded && favoriteCount > 0 ? "fill-[#FFD803] text-[#272343]" : "text-[#2D334A]/70"}`} />
+                  )}
+                  <span>{link.label}</span>
+                </div>
+                {link.label === "Favorites" && isLoaded && favoriteCount > 0 && (
+                  <span className="h-5 min-w-[20px] px-1.5 rounded-full bg-[#272343] text-[#FFD803] text-xs font-mono font-bold flex items-center justify-center">
+                    {favoriteCount}
+                  </span>
+                )}
               </Link>
             ))}
           </nav>
           <div className="pt-2 border-t border-[#BAE8E8]/60 space-y-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                openDrawer();
-              }}
-              className="w-full justify-center gap-2"
-            >
-              <Bookmark
-                className={`h-4 w-4 ${
-                  isLoaded && favoriteCount > 0 ? "fill-[#FFD803] text-[#272343]" : "text-[#2D334A]/70"
-                }`}
-              />
-              <span>My Favorites ({isLoaded ? favoriteCount : 0})</span>
-            </Button>
             <Button asChild variant="primary" className="w-full justify-center">
               <Link href="/library" onClick={() => setMobileMenuOpen(false)}>
                 <Sparkles className="h-4 w-4 mr-2" />

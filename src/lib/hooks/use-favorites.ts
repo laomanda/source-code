@@ -15,12 +15,10 @@ export interface FavoriteItem {
 const FAVORITES_STORAGE_KEY = "jakdev_favorites_items";
 const OLD_FAVORITES_KEY = "jakdev_favorites";
 const FAVORITES_EVENT_NAME = "jakdev:favorites-changed";
-const DRAWER_EVENT_NAME = "jakdev:favorites-drawer-toggle";
 
 export function useFavorites() {
   const [favoriteItems, setFavoriteItems] = React.useState<FavoriteItem[]>([]);
   const [isLoaded, setIsLoaded] = React.useState(false);
-  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
 
   // Load favorites from localStorage
   const loadFavorites = React.useCallback(() => {
@@ -65,15 +63,6 @@ export function useFavorites() {
       loadFavorites();
     };
 
-    const handleDrawerToggle = (e: Event) => {
-      const custom = e as CustomEvent<{ open?: boolean }>;
-      if (custom.detail?.open !== undefined) {
-        setIsDrawerOpen(custom.detail.open);
-      } else {
-        setIsDrawerOpen((prev) => !prev);
-      }
-    };
-
     const handleStorageEvent = (e: StorageEvent) => {
       if (e.key === FAVORITES_STORAGE_KEY || e.key === OLD_FAVORITES_KEY) {
         loadFavorites();
@@ -81,12 +70,10 @@ export function useFavorites() {
     };
 
     window.addEventListener(FAVORITES_EVENT_NAME, handleCustomEvent);
-    window.addEventListener(DRAWER_EVENT_NAME, handleDrawerToggle);
     window.addEventListener("storage", handleStorageEvent);
 
     return () => {
       window.removeEventListener(FAVORITES_EVENT_NAME, handleCustomEvent);
-      window.removeEventListener(DRAWER_EVENT_NAME, handleDrawerToggle);
       window.removeEventListener("storage", handleStorageEvent);
     };
   }, [loadFavorites]);
@@ -138,7 +125,6 @@ export function useFavorites() {
         }
 
         localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(updated));
-        // Keep old key synced for backwards compatibility
         localStorage.setItem(OLD_FAVORITES_KEY, JSON.stringify(updated.map((i) => i.slug)));
         setFavoriteItems(updated);
 
@@ -178,20 +164,6 @@ export function useFavorites() {
     toast.success("All favorites cleared");
   }, []);
 
-  const openDrawer = React.useCallback(() => {
-    setIsDrawerOpen(true);
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent(DRAWER_EVENT_NAME, { detail: { open: true } }));
-    }
-  }, []);
-
-  const closeDrawer = React.useCallback(() => {
-    setIsDrawerOpen(false);
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent(DRAWER_EVENT_NAME, { detail: { open: false } }));
-    }
-  }, []);
-
   return {
     favorites,
     favoriteItems,
@@ -201,8 +173,5 @@ export function useFavorites() {
     removeFavorite,
     clearFavorites,
     favoriteCount: favoriteItems.length,
-    isDrawerOpen,
-    openDrawer,
-    closeDrawer,
   };
 }
