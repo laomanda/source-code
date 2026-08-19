@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { useFavorites } from "@/lib/hooks/use-favorites";
+import { ShareButton } from "@/components/resource/share-button";
 import {
   Bookmark,
   Search,
@@ -123,19 +124,27 @@ export default function FavoritesPage() {
                       <Badge variant="navy" size="sm">
                         {item.category || "Components"}
                       </Badge>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          removeFavorite(item.slug);
-                        }}
-                        className="p-1.5 rounded-lg bg-white/90 border border-[#BAE8E8] text-[#2D334A]/70 hover:text-rose-600 hover:bg-rose-50 shadow-soft-sm transition-colors"
-                        title="Remove from favorites"
-                        aria-label={`Remove ${item.title} from favorites`}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <ShareButton
+                          slug={item.slug}
+                          title={item.title}
+                          category={item.category}
+                          technology={item.technology}
+                        />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            removeFavorite(item.slug);
+                          }}
+                          className="p-1.5 rounded-lg bg-white/90 border border-[#BAE8E8] text-[#2D334A]/70 hover:text-rose-600 hover:bg-rose-50 shadow-soft-sm transition-colors"
+                          title="Remove from favorites"
+                          aria-label={`Remove ${item.title} from favorites`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Content Area */}

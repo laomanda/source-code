@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { FavoriteButton } from "@/components/library/favorite-button";
+import { ShareButton } from "@/components/resource/share-button";
 import { ArrowRight, Monitor, Tablet, Smartphone } from "lucide-react";
 
 export interface ResourceCardProps {
@@ -27,13 +28,22 @@ export function ResourceCard({ resource }: ResourceCardProps) {
               {resource.category}
             </Badge>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               {/* Viewport indicators */}
-              <div className="hidden sm:flex items-center gap-1 text-[#2D334A]/60" title="Responsive viewport support">
+              <div className="hidden sm:flex items-center gap-1 text-[#2D334A]/60 mr-1" title="Responsive viewport support">
                 {resource.responsive.desktop && <Monitor className="h-3.5 w-3.5 text-[#272343]" />}
                 {resource.responsive.tablet && <Tablet className="h-3.5 w-3.5 text-[#272343]" />}
                 {resource.responsive.mobile && <Smartphone className="h-3.5 w-3.5 text-[#272343]" />}
               </div>
+
+              {/* 1-Click Share Button */}
+              <ShareButton
+                slug={resource.slug}
+                title={resource.title}
+                description={resource.description}
+                category={resource.category}
+                technology={resource.technology}
+              />
 
               {/* 1-Click Bookmark / Favorite Button */}
               <FavoriteButton

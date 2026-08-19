@@ -4,6 +4,7 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Resource } from "@/types";
 import { FavoriteButton } from "@/components/library/favorite-button";
+import { ShareButton } from "@/components/resource/share-button";
 
 export interface ResourceHeaderProps {
   resource: Resource;
@@ -12,7 +13,7 @@ export interface ResourceHeaderProps {
 export function ResourceHeader({ resource }: ResourceHeaderProps) {
   return (
     <div className="space-y-4 max-w-4xl">
-      {/* Category & Technology Badges + Favorite Button */}
+      {/* Category & Technology Badges + Actions (Favorite, Share) */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="navy" size="default">
@@ -26,16 +27,29 @@ export function ResourceHeader({ resource }: ResourceHeaderProps) {
           </Badge>
         </div>
 
-        {/* Favorite Bookmark Action */}
-        <FavoriteButton
-          slug={resource.slug}
-          title={resource.title}
-          category={resource.category}
-          technology={resource.technology}
-          showLabel
-          variant="outline"
-          className="shadow-soft-sm"
-        />
+        {/* Action Buttons: Favorite & Share */}
+        <div className="flex items-center gap-2">
+          <FavoriteButton
+            slug={resource.slug}
+            title={resource.title}
+            category={resource.category}
+            technology={resource.technology}
+            showLabel
+            variant="outline"
+            className="shadow-soft-sm"
+          />
+
+          <ShareButton
+            slug={resource.slug}
+            title={resource.title}
+            description={resource.description}
+            category={resource.category}
+            technology={resource.technology}
+            showLabel
+            variant="outline"
+            className="shadow-soft-sm"
+          />
+        </div>
       </div>
 
       {/* Main Title */}
