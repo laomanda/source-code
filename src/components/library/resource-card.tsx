@@ -1,9 +1,12 @@
+"use client";
+
 import * as React from "react";
 import Link from "next/link";
 import { Resource } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { FavoriteButton } from "@/components/library/favorite-button";
 import { ArrowRight, Monitor, Tablet, Smartphone } from "lucide-react";
 
 export interface ResourceCardProps {
@@ -18,20 +21,26 @@ export function ResourceCard({ resource }: ResourceCardProps) {
     >
       <div>
         {/* Preview Top Area */}
-        <div className="h-36 w-full rounded-t-lg bg-gradient-to-b from-[#E3F6F5]/60 to-[#E3F6F5]/20 border-b border-[#BAE8E8]/70 p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
+        <div className="h-36 w-full rounded-t-lg bg-gradient-to-b from-[#E3F6F5]/60 to-[#E3F6F5]/20 border-b border-[#BAE8E8]/70 p-3.5 flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-2">
             <Badge variant="navy" size="sm">
               {resource.category}
             </Badge>
-            {/* Viewport indicators */}
-            <div className="flex items-center gap-1.5 text-[#2D334A]/60" title="Responsive viewport support">
-              {resource.responsive.desktop && <Monitor className="h-3.5 w-3.5 text-[#272343]" />}
-              {resource.responsive.tablet && <Tablet className="h-3.5 w-3.5 text-[#272343]" />}
-              {resource.responsive.mobile && <Smartphone className="h-3.5 w-3.5 text-[#272343]" />}
+
+            <div className="flex items-center gap-2">
+              {/* Viewport indicators */}
+              <div className="hidden sm:flex items-center gap-1 text-[#2D334A]/60" title="Responsive viewport support">
+                {resource.responsive.desktop && <Monitor className="h-3.5 w-3.5 text-[#272343]" />}
+                {resource.responsive.tablet && <Tablet className="h-3.5 w-3.5 text-[#272343]" />}
+                {resource.responsive.mobile && <Smartphone className="h-3.5 w-3.5 text-[#272343]" />}
+              </div>
+
+              {/* 1-Click Bookmark / Favorite Button */}
+              <FavoriteButton slug={resource.slug} title={resource.title} />
             </div>
           </div>
 
-          {/* Inline Code / Mockup preview */}
+          {/* Inline Code / Tags preview */}
           <div className="p-2 rounded bg-white border border-[#BAE8E8] shadow-soft-sm font-mono text-[11px] text-[#272343] truncate">
             {resource.tags.slice(0, 3).map((t) => `#${t}`).join(" ")}
           </div>

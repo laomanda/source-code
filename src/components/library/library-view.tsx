@@ -7,11 +7,13 @@ import { EmptyState } from "@/components/library/empty-state";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useFavorites } from "@/lib/hooks/use-favorites";
 import {
   Search,
   X,
   Layers,
   ArrowUpDown,
+  Bookmark,
 } from "lucide-react";
 
 export interface LibraryViewProps {
@@ -22,7 +24,10 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState<"All" | CategoryType>("All");
   const [selectedTechnology, setSelectedTechnology] = React.useState<string>("All");
+  const [showFavoritesOnly, setShowFavoritesOnly] = React.useState(false);
   const [sortBy, setSortBy] = React.useState<"newest" | "alpha" | "oldest">("newest");
+
+  const { favorites, isLoaded } = useFavorites();
 
   // Distinct technologies from dataset
   const techOptions = React.useMemo(() => {
@@ -49,6 +54,11 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
   // Filter and sort resources
   const filteredResources = React.useMemo(() => {
     let result = initialResources;
+
+    // Favorites only filter
+    if (showFavoritesOnly) {
+      result = result.filter((r) => favorites.includes(r.slug));
+    }
 
     // Category filter
     if (selectedCategory !== "All") {
@@ -85,17 +95,29 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
       // default: newest
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-  }, [initialResources, searchQuery, selectedCategory, selectedTechnology, sortBy]);
+  }, [
+    initialResources,
+    showFavoritesOnly,
+    favorites,
+    searchQuery,
+    selectedCategory,
+    selectedTechnology,
+    sortBy,
+  ]);
 
   const handleResetFilters = () => {
     setSearchQuery("");
     setSelectedCategory("All");
     setSelectedTechnology("All");
+    setShowFavoritesOnly(false);
     setSortBy("newest");
   };
 
   const hasActiveFilters =
-    searchQuery !== "" || selectedCategory !== "All" || selectedTechnology !== "All";
+    searchQuery !== "" ||
+    selectedCategory !== "All" ||
+    selectedTechnology !== "All" ||
+    showFavoritesOnly;
 
   return (
     <div className="py-8 sm:py-12 bg-white min-h-[calc(100vh-4rem)]">
@@ -108,7 +130,7 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
           </div>
           <h1 className="text-h1">Explore Source Code Library</h1>
           <p className="text-body text-[#2D334A]/80">
-            Browse, search, and copy free ready-to-use components, blocks, and templates. Filter by technology and verify responsiveness.
+            Browse, search, and copy free ready-to-use components, blocks, and templates. Filter by technology, bookmark your favorites, and verify responsiveness.
           </p>
         </div>
 
@@ -156,21 +178,26 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
           </div>
         </div>
 
-        {/* Filter Section: Category Tabs & Technology Pills */}
+        {/* Filter Section: Category Tabs & Favorites Toggle & Technology Pills */}
         <div className="space-y-4 pt-2 border-t border-[#BAE8E8]/60">
-          {/* Category Tabs */}
+          {/* Category Tabs + Favorites Tab */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-semibold text-[#272343] mr-2 flex items-center gap-1">
               <span>Category:</span>
             </span>
+
+            {/* Standard Category Tabs */}
             {categories.map((category) => {
               const count = categoryCounts[category] || 0;
-              const isSelected = selectedCategory === category;
+              const isSelected = !showFavoritesOnly && selectedCategory === category;
               return (
                 <button
                   key={category}
                   type="button"
-                  onClick={() => setSelectedCategory(category)}
+                  onClick={() => {
+                    setShowFavoritesOnly(false);
+                    setSelectedCategory(category);
+                  }}
                   className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] ${
                     isSelected
                       ? "bg-[#272343] text-white shadow-soft-sm font-semibold"
@@ -190,6 +217,36 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
                 </button>
               );
             })}
+
+            {/* Favorites Tab Button */}
+            <button
+              type="button"
+              onClick={() => setShowFavoritesOnly((prev) => !prev)}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] ${
+                showFavoritesOnly
+                  ? "bg-[#FFD803] text-[#272343] border-[#F2CD00] font-bold shadow-soft-sm"
+                  : "bg-white text-[#2D334A] border-[#BAE8E8] hover:bg-[#E3F6F5]/60"
+              }`}
+              title="Show only bookmarked favorites"
+            >
+              <Bookmark
+                className={`h-3.5 w-3.5 ${
+                  showFavoritesOnly
+                    ? "fill-[#272343] text-[#272343]"
+                    : "text-[#2D334A]/70"
+                }`}
+              />
+              <span>Favorites</span>
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                  showFavoritesOnly
+                    ? "bg-[#272343] text-[#FFD803] font-bold"
+                    : "bg-[#E3F6F5] text-[#2D334A]/80"
+                }`}
+              >
+                {isLoaded ? favorites.length : 0}
+              </span>
+            </button>
           </div>
 
           {/* Technology Filter Pills */}
@@ -220,6 +277,12 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
         {/* Results Counter & Active Filter Dismissals */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-b border-[#BAE8E8]/60 pb-4">
           <div className="flex items-center gap-2 text-xs text-[#2D334A]">
+            {showFavoritesOnly && (
+              <span className="inline-flex items-center gap-1 font-semibold text-[#0D6E6E] bg-[#E3F6F5] px-2 py-0.5 rounded">
+                <Bookmark className="h-3 w-3 fill-[#0D6E6E]" />
+                Bookmarked
+              </span>
+            )}
             <span className="font-semibold text-[#272343]">
               {filteredResources.length}
             </span>
@@ -248,6 +311,29 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
             {filteredResources.map((resource) => (
               <ResourceCard key={resource.id} resource={resource} />
             ))}
+          </div>
+        ) : showFavoritesOnly ? (
+          <div className="text-center py-16 px-4 rounded-xl border border-dashed border-[#BAE8E8] bg-white space-y-4 max-w-md mx-auto shadow-soft-sm">
+            <div className="h-12 w-12 rounded-full bg-[#E3F6F5] border border-[#BAE8E8] flex items-center justify-center mx-auto text-[#272343]">
+              <Bookmark className="h-6 w-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-heading font-bold text-[#272343]">
+                No Favorites Saved Yet
+              </h3>
+              <p className="text-xs text-[#2D334A]/80 leading-relaxed">
+                Click the bookmark icon on any component card to save it here for instant access without signing in.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={() => setShowFavoritesOnly(false)}
+              className="font-semibold"
+            >
+              Explore All Components
+            </Button>
           </div>
         ) : (
           <EmptyState searchQuery={searchQuery} onReset={handleResetFilters} />

@@ -1,6 +1,9 @@
+"use client";
+
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Resource } from "@/types";
+import { FavoriteButton } from "@/components/library/favorite-button";
 
 export interface ResourceHeaderProps {
   resource: Resource;
@@ -8,18 +11,29 @@ export interface ResourceHeaderProps {
 
 export function ResourceHeader({ resource }: ResourceHeaderProps) {
   return (
-    <div className="space-y-3 max-w-4xl">
-      {/* Category & Technology Badges */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge variant="navy" size="default">
-          {resource.category}
-        </Badge>
-        <Badge variant="secondary" size="default">
-          {resource.technology}
-        </Badge>
-        <Badge variant="success" size="default">
-          Free & Open
-        </Badge>
+    <div className="space-y-4 max-w-4xl">
+      {/* Category & Technology Badges + Favorite Button */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="navy" size="default">
+            {resource.category}
+          </Badge>
+          <Badge variant="secondary" size="default">
+            {resource.technology}
+          </Badge>
+          <Badge variant="success" size="default">
+            Free & Open
+          </Badge>
+        </div>
+
+        {/* Favorite Bookmark Action */}
+        <FavoriteButton
+          slug={resource.slug}
+          title={resource.title}
+          showLabel
+          variant="outline"
+          className="shadow-soft-sm"
+        />
       </div>
 
       {/* Main Title */}

@@ -4,10 +4,12 @@ import * as React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Menu, X, ArrowRight, Sparkles } from "lucide-react";
+import { useFavorites } from "@/lib/hooks/use-favorites";
+import { Menu, X, ArrowRight, Sparkles, Bookmark } from "lucide-react";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const { favoriteCount, isLoaded } = useFavorites();
 
   const navLinks = [
     { label: "Library", href: "/library" },
@@ -50,8 +52,20 @@ export function Navbar() {
           ))}
         </nav>
 
-        {/* Desktop CTA */}
+        {/* Desktop CTA & Favorites Shortcut */}
         <div className="hidden md:flex items-center gap-3">
+          {isLoaded && favoriteCount > 0 && (
+            <Button asChild variant="outline" size="sm" className="gap-1.5 bg-white border-[#BAE8E8] text-xs">
+              <Link href="/library" title="View your bookmarked favorites in Library">
+                <Bookmark className="h-3.5 w-3.5 fill-[#FFD803] text-[#272343]" />
+                <span>Favorites</span>
+                <span className="h-4 min-w-[16px] px-1 rounded-full bg-[#272343] text-[#FFD803] text-[10px] font-mono font-bold flex items-center justify-center">
+                  {favoriteCount}
+                </span>
+              </Link>
+            </Button>
+          )}
+
           <Button asChild variant="primary" size="default" className="shadow-soft-sm">
             <Link href="/library" className="flex items-center gap-1.5">
               <span>Browse Library</span>
@@ -87,7 +101,15 @@ export function Navbar() {
               </Link>
             ))}
           </nav>
-          <div className="pt-2 border-t border-[#BAE8E8]/60">
+          <div className="pt-2 border-t border-[#BAE8E8]/60 space-y-2">
+            {isLoaded && favoriteCount > 0 && (
+              <Button asChild variant="outline" className="w-full justify-center gap-2">
+                <Link href="/library" onClick={() => setMobileMenuOpen(false)}>
+                  <Bookmark className="h-4 w-4 fill-[#FFD803] text-[#272343]" />
+                  <span>My Favorites ({favoriteCount})</span>
+                </Link>
+              </Button>
+            )}
             <Button asChild variant="primary" className="w-full justify-center">
               <Link href="/library" onClick={() => setMobileMenuOpen(false)}>
                 <Sparkles className="h-4 w-4 mr-2" />
