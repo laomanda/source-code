@@ -8,18 +8,18 @@ export function Footer() {
       <Container size="xl">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Brand */}
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-[#FFD803] flex items-center justify-center font-heading font-black text-[#272343] text-lg shadow-soft-sm">
-              J
-            </div>
-            <div>
-              <span className="font-heading font-bold text-lg text-[#272343]">
-                JakDev
-              </span>
-              <p className="text-xs text-[#2D334A]/70">
-                Free developer source-code ecosystem.
-              </p>
-            </div>
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 text-center sm:text-left">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.svg"
+              alt="JakDev"
+              width={135}
+              height={32}
+              className="h-8 w-auto"
+            />
+            <p className="text-xs text-[#2D334A]/70 sm:self-center">
+              Free developer source-code ecosystem.
+            </p>
           </div>
 
           {/* Quick Links */}

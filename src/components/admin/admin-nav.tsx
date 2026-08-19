@@ -36,15 +36,17 @@ export function AdminNav({ userEmail }: AdminNavProps) {
     <header className="sticky top-0 z-40 w-full border-b border-[#BAE8E8] bg-white/95 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Left: Brand + Admin Pill */}
-        <div className="flex items-center gap-6">
-          <Link href="/admin" className="flex items-center gap-2 group">
-            <div className="h-8 w-8 rounded-lg bg-[#272343] flex items-center justify-center text-sm font-black text-[#FFD803] shadow-soft-sm">
-              J
-            </div>
-            <span className="font-heading font-bold text-lg text-[#272343]">
-              JakDev
-            </span>
-            <Badge variant="warning" size="sm" className="font-mono text-[10px] ml-1">
+        <div className="flex items-center gap-4">
+          <Link href="/admin" className="flex items-center gap-2 group" aria-label="JakDev Admin">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.svg"
+              alt="JakDev"
+              width={120}
+              height={28}
+              className="h-7 w-auto group-hover:opacity-90 transition-opacity"
+            />
+            <Badge variant="warning" size="sm" className="font-mono text-[10px]">
               ADMIN
             </Badge>
           </Link>

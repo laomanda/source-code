@@ -37,17 +37,17 @@ export default function DesignSystemPlaygroundPage() {
       <header className="border-b border-[#BAE8E8] bg-white sticky top-0 z-50 shadow-soft-sm">
         <Container size="xl" className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-md bg-[#FFD803] flex items-center justify-center font-heading font-black text-[#272343] text-lg shadow-soft-sm">
-              J
-            </div>
-            <div>
-              <span className="font-heading font-bold text-lg text-[#272343] tracking-tight">
-                JakDev
-              </span>
-              <span className="ml-2 text-xs font-medium text-[#2D334A]/60 bg-[#E3F6F5] px-2 py-0.5 rounded border border-[#BAE8E8]">
-                Design System v1.0
-              </span>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.svg"
+              alt="JakDev"
+              width={135}
+              height={32}
+              className="h-8 w-auto"
+            />
+            <span className="text-xs font-medium text-[#2D334A]/60 bg-[#E3F6F5] px-2 py-0.5 rounded border border-[#BAE8E8]">
+              Design System v1.0
+            </span>
           </div>
           <Badge variant="secondary" className="font-mono text-[11px]">
             INTERNAL TESTING ONLY

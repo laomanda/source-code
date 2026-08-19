@@ -31,18 +31,16 @@ export function Navbar() {
         <Link
           href="/"
           className="flex items-center gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] focus-visible:ring-offset-2 rounded-md"
+          aria-label="JakDev Home"
         >
-          <div className="h-9 w-9 rounded-lg bg-[#FFD803] flex items-center justify-center font-heading font-black text-[#272343] text-xl shadow-soft-sm group-hover:scale-105 transition-transform">
-            J
-          </div>
-          <div className="flex flex-col">
-            <span className="font-heading font-extrabold text-xl text-[#272343] tracking-tight leading-none">
-              JakDev
-            </span>
-            <span className="text-[10px] font-mono text-[#2D334A]/60 tracking-wider uppercase mt-0.5">
-              Source Library
-            </span>
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.svg"
+            alt="JakDev"
+            width={135}
+            height={32}
+            className="h-8 w-auto group-hover:opacity-90 transition-opacity"
+          />
         </Link>
 
         {/* Desktop Navigation Links */}

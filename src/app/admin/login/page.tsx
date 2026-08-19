@@ -74,8 +74,15 @@ function LoginForm() {
 
       <Card className="w-full border-[#BAE8E8] bg-white shadow-soft">
         <CardHeader className="space-y-2 text-center pb-4">
-          <div className="mx-auto h-12 w-12 rounded-xl bg-[#272343] flex items-center justify-center text-lg font-black text-[#FFD803] shadow-soft-sm">
-            J
+          <div className="mx-auto flex items-center justify-center pb-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-mark.svg"
+              alt="JakDev"
+              width={48}
+              height={48}
+              className="h-12 w-12 shadow-soft-sm rounded-xl"
+            />
           </div>
           <CardTitle className="text-2xl font-heading font-bold text-[#272343]">
             JakDev Admin
