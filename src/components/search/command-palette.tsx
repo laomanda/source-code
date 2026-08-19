@@ -15,6 +15,8 @@ import {
   Bookmark,
 } from "lucide-react";
 
+import { SAMPLE_LIBRARY_RESOURCES } from "@/lib/mock-data";
+
 export interface CommandPaletteProps {
   resources?: Resource[];
 }
@@ -33,28 +35,54 @@ export function CommandPalette({ resources = [] }: CommandPaletteProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [selectedIndex, setSelectedIndex] = React.useState(0);
-  const [allResources, setAllResources] = React.useState<Resource[]>(resources);
+  const [allResources, setAllResources] = React.useState<Resource[]>(
+    resources.length > 0 ? resources : SAMPLE_LIBRARY_RESOURCES
+  );
   const router = useRouter();
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  // If resources not passed or empty, fetch published resources client-side
+  // If resources updated, update allResources with fallback
   React.useEffect(() => {
-    if (resources.length > 0) {
+    if (resources && resources.length > 0) {
       setAllResources(resources);
+    } else {
+      setAllResources(SAMPLE_LIBRARY_RESOURCES);
     }
   }, [resources]);
 
-  // Global Keyboard Listener for Cmd+K / Ctrl+K / '/'
+  // Global Keyboard Listener for Cmd+K / Ctrl+K / '/' / 'k'
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      const target = e.target as HTMLElement | null;
+      const isInput =
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.tagName === "SELECT" ||
+        Boolean(target?.isContentEditable);
+
+      const isKKey = e.key?.toLowerCase() === "k" || e.code === "KeyK";
+      const isSlash = e.key === "/" || e.code === "Slash";
+
+      // 1. Ctrl + K or Cmd + K (works everywhere, even inside an input)
+      if ((e.metaKey || e.ctrlKey) && isKKey) {
         e.preventDefault();
         setIsOpen((prev) => !prev);
-      } else if (e.key === "/" && !isOpen && document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
+        return;
+      }
+
+      // 2. Escape to close dialog
+      if (e.key === "Escape" && isOpen) {
         e.preventDefault();
-        setIsOpen(true);
-      } else if (e.key === "Escape" && isOpen) {
         setIsOpen(false);
+        return;
+      }
+
+      // 3. Single key 'k' / 'K' or '/' when NOT typing in an input
+      if (!isInput && !isOpen && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        if (isKKey || isSlash) {
+          e.preventDefault();
+          setIsOpen(true);
+        }
       }
     };
 

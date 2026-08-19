@@ -232,9 +232,19 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
                     <X className="h-4 w-4" />
                   </button>
                 ) : (
-                  <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-[#2D334A]/60 bg-[#E3F6F5] border border-[#BAE8E8] rounded shadow-soft-xs">
-                    /
-                  </kbd>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        window.dispatchEvent(new Event("jakdev:open-search"));
+                      }
+                    }}
+                    className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#2D334A]/70 bg-[#E3F6F5] hover:bg-[#FFD803] hover:text-[#272343] border border-[#BAE8E8] rounded shadow-soft-xs transition-colors"
+                    title="Open Spotlight Search (⌘K / Ctrl+K / Press K)"
+                    aria-label="Open Spotlight Search"
+                  >
+                    ⌘K
+                  </button>
                 )}
               </div>
             </div>
