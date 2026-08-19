@@ -90,10 +90,23 @@ export async function getPublishedResources(): Promise<Resource[]> {
   }
 }
 
-export async function getResourceBySlug(slug: string): Promise<Resource | null> {
+export async function getResourceBySlug(
+  slug: string,
+  allowDraft: boolean = false
+): Promise<Resource | null> {
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
+
+    // If allowDraft is explicitly requested or check if user is admin
+    let isUserAdmin = allowDraft;
+    if (!isUserAdmin) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      isUserAdmin = !!user;
+    }
+
+    let query = supabase
       .from("resources")
       .select(`
         id,
@@ -116,9 +129,13 @@ export async function getResourceBySlug(slug: string): Promise<Resource | null> 
           name
         )
       `)
-      .eq("slug", slug)
-      .eq("status", "published")
-      .maybeSingle();
+      .eq("slug", slug);
+
+    if (!isUserAdmin) {
+      query = query.eq("status", "published");
+    }
+
+    const { data, error } = await query.maybeSingle();
 
     if (error) {
       console.error(`Error fetching resource "${slug}" from Supabase:`, error.message);

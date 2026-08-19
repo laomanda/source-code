@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { CodeEditor } from "@/components/admin/code-editor";
+import { AdminPreviewSandbox } from "@/components/admin/admin-preview-sandbox";
 import {
   ArrowLeft,
   Check,
@@ -29,6 +30,8 @@ import {
   Tablet,
   Smartphone,
   AlertCircle,
+  ExternalLink,
+  Columns,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -45,6 +48,7 @@ export function ResourceForm({
   const isEditing = !!initialResource;
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
+  const [activeTab, setActiveTab] = React.useState<"split" | "editor" | "preview">("split");
 
   // Default values
   const defaultCategory =
@@ -73,7 +77,7 @@ export function ResourceForm({
         `export function Component() {\n  return (\n    <div className="p-4 bg-white rounded-lg border">\n      <span>Hello World</span>\n    </div>\n  );\n}`,
       preview_html:
         initialResource?.previewHtml ||
-        `<div class="p-6 bg-white flex items-center justify-center">\n  <button class="px-4 py-2 bg-[#FFD803] text-[#272343] font-bold rounded-md">\n    Button\n  </button>\n</div>`,
+        `<div class="p-6 bg-white flex items-center justify-center">\n  <button class="px-4 py-2 bg-[#FFD803] text-[#272343] font-bold rounded-md hover:opacity-90 transition">\n    Preview Button\n  </button>\n</div>`,
       preview_image_url: initialResource?.previewImageUrl || "",
       responsive_desktop: initialResource?.responsive?.desktop ?? true,
       responsive_tablet: initialResource?.responsive?.tablet ?? true,
@@ -83,6 +87,11 @@ export function ResourceForm({
   });
 
   const titleValue = watch("title");
+  const slugValue = watch("slug");
+  const previewHtmlValue = watch("preview_html");
+  const responsiveDesktop = watch("responsive_desktop");
+  const responsiveTablet = watch("responsive_tablet");
+  const responsiveMobile = watch("responsive_mobile");
 
   // Auto-slugify on title change for new resources
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,7 +159,29 @@ export function ResourceForm({
           </h1>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Live Page Preview Button (if existing slug) */}
+          {isEditing && slugValue && (
+            <Button
+              asChild
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs border-[#BAE8E8] text-[#272343] hover:bg-[#E3F6F5]"
+            >
+              <a
+                href={`/resource/${slugValue}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Preview full published or draft page in new tab"
+              >
+                <Eye className="h-3.5 w-3.5 text-[#0D6E6E]" />
+                <span>Preview Page</span>
+                <ExternalLink className="h-2.5 w-2.5 opacity-60" />
+              </a>
+            </Button>
+          )}
+
           <Button
             asChild
             type="button"
@@ -181,7 +212,7 @@ export function ResourceForm({
         </div>
       )}
 
-      {/* Grid Form Sections */}
+      {/* Grid Form Sections: Metadata & Settings */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Metadata & Details */}
         <div className="lg:col-span-7 space-y-6">
@@ -300,8 +331,11 @@ export function ResourceForm({
                   className="w-full h-9 rounded-md border border-[#BAE8E8] bg-white px-2.5 text-xs font-semibold text-[#272343] shadow-soft-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343]"
                 >
                   <option value="published">Published (Visible publicly)</option>
-                  <option value="draft">Draft (Admin only)</option>
+                  <option value="draft">Draft (Admin preview only before publish)</option>
                 </select>
+                <p className="text-[11px] text-[#2D334A]/70">
+                  Select <strong>Draft</strong> to safely test and preview live before making it available to the public.
+                </p>
               </div>
 
               {/* Viewport Checkboxes */}
@@ -344,71 +378,142 @@ export function ResourceForm({
         </div>
       </div>
 
-      {/* Code Editors Section: Full Width */}
-      <div className="space-y-6">
-        {/* Source Code Editor */}
-        <Card className="border-[#BAE8E8] bg-white shadow-soft">
-          <CardHeader className="pb-3 border-b border-[#BAE8E8]/40 flex flex-row items-center justify-between">
-            <CardTitle className="text-base text-[#272343] flex items-center gap-2">
-              <Code2 className="h-4 w-4 text-[#272343]" />
-              <span>Source Code *</span>
-            </CardTitle>
-            <span className="text-[11px] font-mono text-[#2D334A]/60">
-              CodeMirror Editor · Preserves formatting
+      {/* Live Preview & Code Editor Workspace Section */}
+      <div className="space-y-4 pt-4 border-t border-[#BAE8E8]/60">
+        {/* Workspace Mode Switcher */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#E3F6F5]/40 p-3 rounded-xl border border-[#BAE8E8]">
+          <div className="flex items-center gap-2">
+            <Eye className="h-4 w-4 text-[#272343]" />
+            <span className="text-xs font-heading font-bold text-[#272343]">
+              Code & Real-Time Preview Workspace
             </span>
-          </CardHeader>
-          <CardContent className="pt-4 space-y-2">
-            <Controller
-              name="source_code"
-              control={control}
-              render={({ field }) => (
-                <CodeEditor
-                  value={field.value}
-                  onChange={field.onChange}
-                  language="tsx"
-                  placeholder="Paste or write full source code here..."
-                  minHeight="320px"
-                  maxHeight="600px"
-                />
-              )}
-            />
-            {errors.source_code && (
-              <p className="text-[11px] text-rose-600">{errors.source_code.message}</p>
-            )}
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Live Preview HTML Editor */}
-        <Card className="border-[#BAE8E8] bg-white shadow-soft">
-          <CardHeader className="pb-3 border-b border-[#BAE8E8]/40 flex flex-row items-center justify-between">
-            <CardTitle className="text-base text-[#272343] flex items-center gap-2">
-              <Eye className="h-4 w-4 text-[#272343]" />
-              <span>Preview HTML (Sandboxed Iframe Content)</span>
-            </CardTitle>
-            <span className="text-[11px] font-mono text-[#2D334A]/60">
-              HTML + Tailwind CDN markup
-            </span>
-          </CardHeader>
-          <CardContent className="pt-4 space-y-2">
-            <Controller
-              name="preview_html"
-              control={control}
-              render={({ field }) => (
-                <CodeEditor
-                  value={field.value || ""}
-                  onChange={field.onChange}
-                  language="html"
-                  placeholder="<div class='p-4'>...</div>"
-                  minHeight="220px"
-                  maxHeight="450px"
-                />
-              )}
+          <div className="flex items-center gap-1.5 bg-white p-1 rounded-lg border border-[#BAE8E8]">
+            <button
+              type="button"
+              onClick={() => setActiveTab("split")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                activeTab === "split"
+                  ? "bg-[#272343] text-[#FFD803] shadow-soft-sm"
+                  : "text-[#2D334A]/80 hover:text-[#272343]"
+              }`}
+            >
+              <Columns className="h-3.5 w-3.5" />
+              <span>Split View</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("editor")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                activeTab === "editor"
+                  ? "bg-[#272343] text-[#FFD803] shadow-soft-sm"
+                  : "text-[#2D334A]/80 hover:text-[#272343]"
+              }`}
+            >
+              <Code2 className="h-3.5 w-3.5" />
+              <span>Editors Only</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("preview")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                activeTab === "preview"
+                  ? "bg-[#272343] text-[#FFD803] shadow-soft-sm"
+                  : "text-[#2D334A]/80 hover:text-[#272343]"
+              }`}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              <span>Live Sandbox Only</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Live Admin Sandbox Preview Component (Shown in split or preview mode) */}
+        {(activeTab === "split" || activeTab === "preview") && (
+          <div className="space-y-2 animate-in fade-in duration-150">
+            <AdminPreviewSandbox
+              html={previewHtmlValue || ""}
+              title={titleValue || "New Component Preview"}
+              responsive={{
+                desktop: responsiveDesktop,
+                tablet: responsiveTablet,
+                mobile: responsiveMobile,
+              }}
             />
-            <p className="text-[11px] text-[#2D334A]/70">
-              This markup will execute safely inside the sandboxed iframe for public interactive previews.
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+        )}
+
+        {/* Code Editors (Shown in split or editor mode) */}
+        {(activeTab === "split" || activeTab === "editor") && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in duration-150">
+            {/* Source Code Editor */}
+            <Card className="border-[#BAE8E8] bg-white shadow-soft">
+              <CardHeader className="pb-3 border-b border-[#BAE8E8]/40 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm text-[#272343] flex items-center gap-2">
+                  <Code2 className="h-4 w-4 text-[#272343]" />
+                  <span>Source Code (TSX/JSX) *</span>
+                </CardTitle>
+                <span className="text-[10px] font-mono text-[#2D334A]/60">
+                  Full production code
+                </span>
+              </CardHeader>
+              <CardContent className="pt-4 space-y-2">
+                <Controller
+                  name="source_code"
+                  control={control}
+                  render={({ field }) => (
+                    <CodeEditor
+                      value={field.value}
+                      onChange={field.onChange}
+                      language="tsx"
+                      placeholder="Paste or write full source code here..."
+                      minHeight="260px"
+                      maxHeight="480px"
+                    />
+                  )}
+                />
+                {errors.source_code && (
+                  <p className="text-[11px] text-rose-600">{errors.source_code.message}</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Live Preview HTML Editor */}
+            <Card className="border-[#BAE8E8] bg-white shadow-soft">
+              <CardHeader className="pb-3 border-b border-[#BAE8E8]/40 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm text-[#272343] flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-[#272343]" />
+                  <span>Preview HTML (Sandboxed Markup)</span>
+                </CardTitle>
+                <span className="text-[10px] font-mono text-[#2D334A]/60">
+                  Updates Sandbox immediately
+                </span>
+              </CardHeader>
+              <CardContent className="pt-4 space-y-2">
+                <Controller
+                  name="preview_html"
+                  control={control}
+                  render={({ field }) => (
+                    <CodeEditor
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      language="html"
+                      placeholder="<div class='p-4'>...</div>"
+                      minHeight="260px"
+                      maxHeight="480px"
+                    />
+                  )}
+                />
+                <p className="text-[11px] text-[#2D334A]/70">
+                  HTML markup rendered inside the sandboxed iframe above.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
 
       {/* Bottom Save Action Bar */}

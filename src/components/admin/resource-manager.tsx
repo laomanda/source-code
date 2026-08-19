@@ -14,7 +14,7 @@ import {
   Search,
   Edit,
   Trash2,
-  ExternalLink,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -189,13 +189,21 @@ export function ResourceManager({
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          {item.status === "published" && (
-                            <Button asChild variant="ghost" size="icon-sm" title="View live on site" className="h-7 w-7">
-                              <Link href={`/resource/${item.slug}`} target="_blank">
-                                <ExternalLink className="h-3.5 w-3.5" />
-                              </Link>
-                            </Button>
-                          )}
+                          <Button
+                            asChild
+                            variant="ghost"
+                            size="icon-sm"
+                            title={
+                              item.status === "draft"
+                                ? "Admin Preview (Draft mode)"
+                                : "View Live Page"
+                            }
+                            className="h-7 w-7 text-[#0D6E6E] hover:text-[#272343] hover:bg-[#E3F6F5]"
+                          >
+                            <Link href={`/resource/${item.slug}`} target="_blank">
+                              <Eye className="h-3.5 w-3.5" />
+                            </Link>
+                          </Button>
                           <Button asChild variant="outline" size="sm" className="h-7 px-2 text-xs gap-1">
                             <Link href={`/admin/resources/${item.id}/edit`}>
                               <Edit className="h-3 w-3" />
