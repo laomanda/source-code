@@ -14,8 +14,12 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <title>Application Error — JakDev</title>
+      </head>
       <body
+        suppressHydrationWarning
         style={{
           margin: 0,
           padding: 0,
