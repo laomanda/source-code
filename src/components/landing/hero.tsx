@@ -10,8 +10,8 @@ import { ArrowRight, Copy, Terminal } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const ROTATING_PHRASES = [
-  "antarmuka web modern.",
-  "komponen UI interaktif.",
+  "antarmuka web modern dan interaktif.",
+  "membantu para developer diluar sana.",
   "template website siap pakai.",
   "blok landing page responsif.",
   "elemen UI copy-paste instan.",
