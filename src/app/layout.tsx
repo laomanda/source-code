@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { GlobalCommandPalette } from "@/components/search/global-command-palette";
+import { ScrollProgress } from "@/components/ui/scroll-progress";
 import "./globals.css";
 
 const geist = Geist({
@@ -61,6 +62,7 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${inter.variable} ${geist.variable} ${jetbrainsMono.variable} font-sans bg-background text-foreground antialiased min-h-screen`}
       >
+        <ScrollProgress />
         {children}
         <GlobalCommandPalette />
         <Toaster position="bottom-right" richColors toastOptions={{ style: { fontFamily: "var(--font-inter)" } }} />

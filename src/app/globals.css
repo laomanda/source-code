@@ -89,4 +89,87 @@
   .text-code {
     @apply font-mono text-xs sm:text-sm text-[#272343] bg-[#E3F6F5]/50 px-1.5 py-0.5 rounded border border-[#BAE8E8]/60;
   }
+
+  /* Compact / Code Snippet Scrollbars */
+  .code-scrollbar::-webkit-scrollbar,
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .code-scrollbar::-webkit-scrollbar-track,
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+    border: none;
+  }
+
+  .code-scrollbar::-webkit-scrollbar-thumb,
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #BAE8E8;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+  }
+
+  .code-scrollbar::-webkit-scrollbar-thumb:hover,
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #272343;
+  }
+
+  .code-scrollbar::-webkit-scrollbar-thumb:active,
+  .custom-scrollbar::-webkit-scrollbar-thumb:active {
+    background-color: #FFD803;
+  }
+
+  /* Hide Scrollbar Utility */
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
+
+/* ==========================================================================
+   JakDev Custom Scrollbar System (Developer & IDE Aesthetics)
+   ========================================================================== */
+
+/* 1. Global Viewport & Element Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FBFDFD;
+  border-left: 1px solid rgba(186, 232, 232, 0.4);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #BAE8E8;
+  border-radius: 9999px;
+  border: 2px solid #FBFDFD;
+  background-clip: padding-box;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #272343;
+  border-color: #FBFDFD;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: #FFD803;
+  border-color: #272343;
+}
+
+::-webkit-scrollbar-corner {
+  background: #FFFFFF;
+}
+
+/* Firefox Standard Support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #BAE8E8 #FBFDFD;
+}
+
