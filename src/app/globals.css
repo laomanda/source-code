@@ -173,3 +173,22 @@
   scrollbar-color: #BAE8E8 #FBFDFD;
 }
 
+/* ==========================================================================
+   Infinite Marquee Animation
+   ========================================================================== */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+  will-change: transform;
+}
+

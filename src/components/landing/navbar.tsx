@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Container } from "@/components/ui/container";
 import { useFavorites } from "@/lib/hooks/use-favorites";
 import {
@@ -17,6 +18,7 @@ import { CircleMenu } from "@/components/ui/circle-menu";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
+  const pathname = usePathname();
   const { favoriteCount, isLoaded } = useFavorites();
   const [isScrolled, setIsScrolled] = React.useState(false);
 
@@ -121,13 +123,84 @@ export function Navbar() {
         </Container>
       </header>
 
-      {/* Floating Semi-Circle Navigation Menu (Anchored at Middle-Right) */}
-      <div className="fixed top-1/2 right-4 sm:right-6 md:right-8 -translate-y-1/2 z-50 flex items-center">
+      {/* Desktop Floating Semi-Circle Navigation Menu (Visible only on md: and above) */}
+      <div className="hidden md:flex fixed top-1/2 right-4 sm:right-6 md:right-8 -translate-y-1/2 z-50 items-center">
         <CircleMenu
           items={circleMenuItems}
           mode="semi-circle-left"
           className="shadow-soft-2xl"
         />
+      </div>
+
+      {/* Mobile Floating Bottom Navigation Bar (Visible only on mobile < md) */}
+      <div className="md:hidden fixed bottom-3 inset-x-3 z-50 max-w-sm mx-auto pointer-events-auto">
+        <nav
+          className="bg-white/95 backdrop-blur-xl border border-[#BAE8E8] shadow-soft-2xl rounded-2xl px-2 py-1.5 flex items-center justify-between"
+          aria-label="Navigasi Bawah Mobile"
+        >
+          {/* 1. Beranda */}
+          <Link
+            href="/"
+            className={cn(
+              "flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-[10px] font-medium transition-all",
+              pathname === "/"
+                ? "text-[#272343] bg-[#FFD803]/40 font-bold shadow-soft-xs"
+                : "text-[#2D334A]/75 hover:text-[#272343] hover:bg-[#E3F6F5]/50"
+            )}
+          >
+            <Home className="h-4 w-4 mb-0.5" />
+            <span>Beranda</span>
+          </Link>
+
+          {/* 2. Pustaka */}
+          <Link
+            href="/library"
+            className={cn(
+              "flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-[10px] font-medium transition-all",
+              pathname.startsWith("/library")
+                ? "text-[#272343] bg-[#FFD803]/40 font-bold shadow-soft-xs"
+                : "text-[#2D334A]/75 hover:text-[#272343] hover:bg-[#E3F6F5]/50"
+            )}
+          >
+            <Layers className="h-4 w-4 mb-0.5" />
+            <span>Pustaka</span>
+          </Link>
+
+          {/* 3. Favorit */}
+          <Link
+            href="/favorites"
+            className={cn(
+              "flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-[10px] font-medium transition-all relative",
+              pathname === "/favorites"
+                ? "text-[#272343] bg-[#FFD803]/40 font-bold shadow-soft-xs"
+                : "text-[#2D334A]/75 hover:text-[#272343] hover:bg-[#E3F6F5]/50"
+            )}
+          >
+            <div className="relative">
+              <Bookmark
+                className={cn(
+                  "h-4 w-4 mb-0.5",
+                  isLoaded && favoriteCount > 0 && "fill-[#FFD803] text-[#272343]"
+                )}
+              />
+              {isLoaded && favoriteCount > 0 && (
+                <span className="absolute -top-1 -right-2.5 h-3.5 min-w-[14px] px-0.5 rounded-full bg-[#FFD803] text-[#272343] font-mono font-black text-[9px] flex items-center justify-center border border-[#272343]/30">
+                  {favoriteCount}
+                </span>
+              )}
+            </div>
+            <span>Favorit</span>
+          </Link>
+
+          {/* 4. Kirim Saran */}
+          <Link
+            href="/#suggest"
+            className="flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-[10px] font-medium text-[#2D334A]/75 hover:text-[#272343] hover:bg-[#E3F6F5]/50 transition-all"
+          >
+            <Lightbulb className="h-4 w-4 mb-0.5 text-[#0D6E6E]" />
+            <span>Kirim Saran</span>
+          </Link>
+        </nav>
       </div>
     </>
   );

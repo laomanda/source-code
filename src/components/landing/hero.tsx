@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -5,33 +7,53 @@ import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/ui/container";
 import { AmbientBackground } from "@/components/landing/ambient-background";
 import { ArrowRight, Copy, Terminal } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+
+const ROTATING_PHRASES = [
+  "antarmuka web modern.",
+  "komponen UI interaktif.",
+  "template website siap pakai.",
+  "blok landing page responsif.",
+  "elemen UI copy-paste instan.",
+];
 
 export function Hero() {
+  const [phraseIndex, setPhraseIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setPhraseIndex((prev) => (prev + 1) % ROTATING_PHRASES.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <section className="relative overflow-hidden pt-12 pb-20 sm:pt-20 sm:pb-28 border-b border-[#BAE8E8]/60 bg-white">
       <AmbientBackground />
 
       <Container size="xl" className="relative z-10">
         <div className="flex flex-col items-center text-center max-w-4xl mx-auto space-y-8">
-          {/* Tagline Pill */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E3F6F5] border border-[#BAE8E8] shadow-soft-sm">
-            <span className="h-2 w-2 rounded-full bg-[#FFD803] animate-pulse" />
-            <span className="font-heading font-semibold text-xs text-[#272343]">
-              100% Free Developer Source-Code Ecosystem
-            </span>
-          </div>
-
-          {/* Main Headline */}
+          {/* Main Headline with 3-Second Rotating Animated Phrase */}
           <div className="space-y-4">
             <h1 className="text-display max-w-3xl mx-auto">
-              Free source code for{" "}
-              <span className="relative inline-block text-[#272343]">
-                modern web interfaces.
-                <span className="absolute left-0 bottom-1 w-full h-3 bg-[#FFD803]/40 -z-10 rounded" />
+              Source code gratis untuk{" "}
+              <span className="relative inline-block align-bottom min-h-[1.2em]">
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={ROTATING_PHRASES[phraseIndex]}
+                    initial={{ opacity: 0, y: 18, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, y: -18, filter: "blur(4px)" }}
+                    transition={{ duration: 0.38, ease: "easeOut" }}
+                    className="inline text-[#272343] bg-gradient-to-r from-[#FFD803]/45 to-[#FFD803]/45 bg-no-repeat [background-position:0_90%] [background-size:100%_32%] [box-decoration-break:clone] [-webkit-box-decoration-break:clone] px-1 rounded-sm"
+                  >
+                    {ROTATING_PHRASES[phraseIndex]}
+                  </motion.span>
+                </AnimatePresence>
               </span>
             </h1>
             <p className="text-body-large text-[#2D334A] max-w-2xl mx-auto">
-              Discover reusable UI components, section blocks, and full templates. Preview them in real time, copy clean source code with one click, and ship faster.
+              Temukan komponen UI, blok halaman, dan template siap pakai. Pratinjau secara real-time, salin kode bersih dalam satu klik, dan bangun website lebih cepat.
             </p>
           </div>
 
@@ -39,24 +61,24 @@ export function Hero() {
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <Button asChild variant="primary" size="lg" className="shadow-soft">
               <Link href="/library" className="flex items-center gap-2">
-                <span>Browse Library</span>
+                <span>Jelajahi Pustaka</span>
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <a href="#how-it-works">See How It Works</a>
+              <a href="#how-it-works">Pelajari Cara Kerja</a>
             </Button>
           </div>
 
           {/* Core Journey Breadcrumb */}
           <div className="flex items-center gap-2 sm:gap-3 text-xs font-medium text-[#2D334A]/80 pt-2">
-            <span className="px-2.5 py-1 rounded bg-[#E3F6F5] border border-[#BAE8E8]/70 text-[#272343] font-semibold">01 Browse</span>
+            <span className="px-2.5 py-1 rounded bg-[#E3F6F5] border border-[#BAE8E8]/70 text-[#272343] font-semibold">01 Cari</span>
             <span className="text-[#BAE8E8] font-bold">→</span>
-            <span className="px-2.5 py-1 rounded bg-[#E3F6F5] border border-[#BAE8E8]/70 text-[#272343] font-semibold">02 Preview</span>
+            <span className="px-2.5 py-1 rounded bg-[#E3F6F5] border border-[#BAE8E8]/70 text-[#272343] font-semibold">02 Pratinjau</span>
             <span className="text-[#BAE8E8] font-bold">→</span>
-            <span className="px-2.5 py-1 rounded bg-[#FFD803] text-[#272343] font-bold border border-[#F2CD00]/50 shadow-soft-sm">03 Copy</span>
+            <span className="px-2.5 py-1 rounded bg-[#FFD803] text-[#272343] font-bold border border-[#F2CD00]/50 shadow-soft-sm">03 Salin</span>
             <span className="text-[#BAE8E8] font-bold">→</span>
-            <span className="px-2.5 py-1 rounded bg-[#E3F6F5] border border-[#BAE8E8]/70 text-[#272343] font-semibold">04 Build</span>
+            <span className="px-2.5 py-1 rounded bg-[#E3F6F5] border border-[#BAE8E8]/70 text-[#272343] font-semibold">04 Bangun</span>
           </div>
 
           {/* Hero Interactive Showcase Card Mockup */}
@@ -84,10 +106,10 @@ export function Hero() {
                 {/* Live Preview Side */}
                 <div className="p-6 bg-white flex flex-col justify-between space-y-6">
                   <div className="space-y-2">
-                    <span className="text-[11px] font-mono uppercase tracking-wider text-[#2D334A]/60">Live UI Preview</span>
-                    <h3 className="font-heading font-bold text-lg text-[#272343]">Responsive Floating Navbar</h3>
+                    <span className="text-[11px] font-mono uppercase tracking-wider text-[#2D334A]/60">Pratinjau Langsung</span>
+                    <h3 className="font-heading font-bold text-lg text-[#272343]">Navbar Melayang Responsif</h3>
                     <p className="text-xs text-[#2D334A]/80">
-                      Clean navbar with sticky backdrop blur and responsive mobile drawer trigger.
+                      Navbar modern dengan efek kaca buram dan menu responsif untuk perangkat mobile.
                     </p>
                   </div>
 
@@ -107,18 +129,18 @@ export function Hero() {
 
                   <div className="flex items-center justify-between text-xs text-[#2D334A]/70">
                     <span>Desktop · Tablet · Mobile</span>
-                    <span className="text-[#0D6E6E] font-medium">Ready to use</span>
+                    <span className="text-[#0D6E6E] font-medium">Siap Pakai</span>
                   </div>
                 </div>
 
                 {/* Code Side */}
                 <div className="p-5 bg-[#272343] text-white flex flex-col justify-between font-mono text-xs">
                   <div className="space-y-1.5 text-slate-300">
-                    <p className="text-slate-400">{"// Copy and paste into your project"}</p>
+                    <p className="text-slate-400">{"// Salin dan tempel ke proyek Anda"}</p>
                     <p><span className="text-[#FFD803]">export function</span> <span className="text-[#BAE8E8]">Navbar</span>() &#123;</p>
                     <p className="pl-3 text-slate-300">return (</p>
                     <p className="pl-6 text-[#E3F6F5]">&lt;header <span className="text-amber-300">className</span>=<span className="text-emerald-300">&quot;sticky top-0 z-50&quot;</span>&gt;</p>
-                    <p className="pl-9 text-slate-400">&lt;!-- Instant responsive layout --&gt;</p>
+                    <p className="pl-9 text-slate-400">&lt;!-- Tata letak responsif instan --&gt;</p>
                     <p className="pl-6 text-[#E3F6F5]">&lt;/header&gt;</p>
                     <p className="pl-3">);</p>
                     <p>&#125;</p>
@@ -128,7 +150,7 @@ export function Hero() {
                     <span className="text-[11px] text-slate-400">TypeScript · JSX</span>
                     <div className="inline-flex items-center gap-1 text-xs text-[#FFD803] font-sans font-semibold">
                       <Copy className="h-3.5 w-3.5" />
-                      <span>One-click Copy</span>
+                      <span>Salin Sekali Klik</span>
                     </div>
                   </div>
                 </div>
