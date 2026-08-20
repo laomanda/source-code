@@ -106,14 +106,6 @@ export function Footer() {
                 </li>
                 <li>
                   <a
-                    href="#how-it-works"
-                    className="hover:text-[#272343] font-medium transition-colors"
-                  >
-                    Cara Kerja & Panduan
-                  </a>
-                </li>
-                <li>
-                  <a
                     href="#suggest"
                     className="hover:text-[#272343] font-medium transition-colors"
                   >

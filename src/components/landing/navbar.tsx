@@ -11,7 +11,6 @@ import {
   Sparkles,
   Home,
   Layers,
-  Compass,
   Lightbulb,
 } from "lucide-react";
 import { CircleMenu } from "@/components/ui/circle-menu";
@@ -65,11 +64,6 @@ export function Navbar() {
       label: "Showcase",
       icon: <Sparkles size={16} className="text-[#272343]" />,
       href: "/#showcase",
-    },
-    {
-      label: "Cara Kerja",
-      icon: <Compass size={16} className="text-[#272343]" />,
-      href: "/#how-it-works",
     },
     {
       label: "Kirim Saran",

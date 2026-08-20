@@ -39,9 +39,6 @@ export function ResourceShowcase() {
           <h2 className="text-h2 text-[#272343]">
             Apa Saja yang Ada di Dalam JakDev?
           </h2>
-          <p className="text-body text-[#2D334A]/80">
-            Koleksi lengkap elemen web modern yang dirancang untuk mempercepat alur kerja pengembangan web Anda dari ide hingga produksi.
-          </p>
         </div>
 
         {/* Bento Grid Architecture */}
