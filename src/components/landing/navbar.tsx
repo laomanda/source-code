@@ -14,9 +14,19 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { CircleMenu } from "@/components/ui/circle-menu";
+import { cn } from "@/lib/utils";
 
 export function Navbar() {
   const { favoriteCount, isLoaded } = useFavorites();
+  const [isScrolled, setIsScrolled] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleOpenSearch = () => {
     if (typeof window !== "undefined") {
@@ -68,8 +78,15 @@ export function Navbar() {
 
   return (
     <>
-      {/* Minimal Top Brand Bar (Clean, transparent, no bulky navbar strip) */}
-      <header className="relative w-full z-30 pt-4 sm:pt-6">
+      {/* Sticky Top Brand Bar (Logo + Search, sticks on scroll with glassmorphism) */}
+      <header
+        className={cn(
+          "sticky top-0 w-full z-40 transition-all duration-200",
+          isScrolled
+            ? "py-3 bg-white/85 backdrop-blur-md border-b border-[#BAE8E8]/70 shadow-soft-xs"
+            : "py-4 sm:py-6 bg-transparent"
+        )}
+      >
         <Container size="xl" className="flex items-center justify-between">
           {/* Brand Logo */}
           <Link
@@ -83,7 +100,7 @@ export function Navbar() {
               alt="JakDev"
               width={132}
               height={32}
-              className="h-8 w-auto transition-transform duration-200 group-hover:scale-[1.02]"
+              className="h-8 w-auto"
             />
           </Link>
 
