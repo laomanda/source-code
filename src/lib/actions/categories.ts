@@ -18,7 +18,6 @@ function slugify(text: string): string {
 }
 
 export async function createCategoryAction(
-  _prevState: CategoryActionState | null,
   formData: FormData
 ): Promise<CategoryActionState> {
   const name = (formData.get("name") as string)?.trim();
@@ -35,10 +34,13 @@ export async function createCategoryAction(
     slug = slugify(slug);
   }
 
+  if (!slug) {
+    return { error: "Valid slug could not be generated from the category name." };
+  }
+
   try {
     const supabase = await createClient();
 
-    // Verify authenticated user
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return { error: "Unauthorized. Please log in." };
@@ -62,13 +64,12 @@ export async function createCategoryAction(
     revalidatePath("/library");
     return { success: true };
   } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : "Failed to perform category operation." };
+    return { error: err instanceof Error ? err.message : "Failed to create category." };
   }
 }
 
 export async function updateCategoryAction(
   id: string,
-  _prevState: CategoryActionState | null,
   formData: FormData
 ): Promise<CategoryActionState> {
   const name = (formData.get("name") as string)?.trim();
@@ -147,7 +148,7 @@ export async function deleteCategoryAction(id: string): Promise<CategoryActionSt
 
     if (count && count > 0) {
       return {
-        error: `Cannot delete category: it is currently referenced by ${count} resource(s). Reassign or delete those resources first.`,
+        error: `Tidak dapat menghapus kategori: saat ini masih digunakan oleh ${count} komponen. Ubah atau hapus komponen tersebut terlebih dahulu.`,
       };
     }
 
@@ -162,6 +163,50 @@ export async function deleteCategoryAction(id: string): Promise<CategoryActionSt
     revalidatePath("/library");
     return { success: true };
   } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : "Failed to delete category." };
+    return { error: err instanceof Error ? err.message : "Gagal menghapus kategori." };
+  }
+}
+
+export async function bulkDeleteCategoriesAction(ids: string[]): Promise<CategoryActionState> {
+  if (!ids || ids.length === 0) {
+    return { error: "Pilih setidaknya satu kategori untuk dihapus." };
+  }
+
+  try {
+    const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { error: "Tidak memiliki izin. Silakan masuk terlebih dahulu." };
+    }
+
+    // Check if any selected categories are referenced by resources
+    const { count, error: countError } = await supabase
+      .from("resources")
+      .select("*", { count: "exact", head: true })
+      .in("category_id", ids);
+
+    if (countError) {
+      return { error: countError.message };
+    }
+
+    if (count && count > 0) {
+      return {
+        error: `Tidak dapat menghapus: terdapat ${count} komponen yang masih terhubung dengan kategori yang dipilih.`,
+      };
+    }
+
+    const { error } = await supabase.from("categories").delete().in("id", ids);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    revalidatePath("/admin/categories");
+    revalidatePath("/admin");
+    revalidatePath("/library");
+    return { success: true };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : "Gagal menghapus kategori yang dipilih." };
   }
 }

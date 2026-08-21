@@ -140,51 +140,41 @@ export async function getResourceBySlug(
   try {
     const supabase = await createClient();
 
+    // 1. Fast path: Attempt fetching published resource directly without auth round-trip
+    const fastRes = await supabase
+      .from("resources")
+      .select(BASE_SELECT_WITH_TECH)
+      .eq("slug", slug)
+      .eq("status", "published")
+      .maybeSingle();
+
+    if (fastRes.data) {
+      return mapRowToResource(fastRes.data as unknown as ResourceRowWithCategory);
+    }
+
+    // 2. If allowDraft requested or fast query returned nothing, check admin auth
     let isUserAdmin = allowDraft;
     if (!isUserAdmin) {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       isUserAdmin = !!user;
     }
 
-    let query = supabase
+    if (!isUserAdmin) {
+      return null;
+    }
+
+    // Admin can view draft resources
+    const adminRes = await supabase
       .from("resources")
       .select(BASE_SELECT_WITH_TECH)
-      .eq("slug", slug);
+      .eq("slug", slug)
+      .maybeSingle();
 
-    if (!isUserAdmin) {
-      query = query.eq("status", "published");
+    if (adminRes.data) {
+      return mapRowToResource(adminRes.data as unknown as ResourceRowWithCategory);
     }
 
-    const res = await query.maybeSingle();
-    let row: ResourceRowWithCategory | null = null;
-
-    if (res.error && (res.error.message?.includes("tech_id") || res.error.code === "42703")) {
-      let fallbackQuery = supabase
-        .from("resources")
-        .select(BASE_SELECT_FALLBACK)
-        .eq("slug", slug);
-
-      if (!isUserAdmin) {
-        fallbackQuery = fallbackQuery.eq("status", "published");
-      }
-      const fallbackRes = await fallbackQuery.maybeSingle();
-      if (fallbackRes.error || !fallbackRes.data) {
-        return null;
-      }
-      row = fallbackRes.data as unknown as ResourceRowWithCategory;
-    } else if (res.error || !res.data) {
-      return null;
-    } else {
-      row = res.data as unknown as ResourceRowWithCategory;
-    }
-
-    if (!row) {
-      return null;
-    }
-
-    return mapRowToResource(row);
+    return null;
   } catch (err) {
     console.error(`Unexpected error in getResourceBySlug for "${slug}":`, err);
     return null;

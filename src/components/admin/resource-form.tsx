@@ -26,9 +26,6 @@ import {
   Eye,
   Layers,
   Sparkles,
-  Monitor,
-  Tablet,
-  Smartphone,
   AlertCircle,
   ExternalLink,
   Columns,
@@ -373,65 +370,29 @@ export function ResourceForm({
           </Card>
         </div>
 
-        {/* Right Column: Status & Responsive Settings */}
+        {/* Right Column: Status Settings */}
         <div className="lg:col-span-5 space-y-6">
           <Card className="border-[#BAE8E8] bg-white shadow-soft">
             <CardHeader className="pb-3 border-b border-[#BAE8E8]/40">
               <CardTitle className="text-base text-[#272343] flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-[#272343]" />
-                <span>Publication & Viewports</span>
+                <span>Status Publikasi</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 pt-4 text-xs">
               {/* Status */}
               <div className="space-y-1.5">
-                <label className="font-semibold text-[#272343]">Publication Status</label>
+                <label className="font-semibold text-[#272343]">Status Komponen</label>
                 <select
                   {...register("status")}
                   className="w-full h-9 rounded-md border border-[#BAE8E8] bg-white px-2.5 text-xs font-semibold text-[#272343] shadow-soft-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343]"
                 >
-                  <option value="published">Published (Visible publicly)</option>
-                  <option value="draft">Draft (Admin preview only before publish)</option>
+                  <option value="published">Tayang (Published)</option>
+                  <option value="draft">Draf (Draft)</option>
                 </select>
                 <p className="text-[11px] text-[#2D334A]/70">
-                  Select <strong>Draft</strong> to safely test and preview live before making it available to the public.
+                  Pilih <strong>Tayang</strong> agar komponen dapat diakses publik, atau <strong>Draf</strong> untuk disimpan sementara.
                 </p>
-              </div>
-
-              {/* Viewport Checkboxes */}
-              <div className="space-y-2 pt-2 border-t border-[#BAE8E8]/40">
-                <label className="font-semibold text-[#272343]">Supported Viewports</label>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2.5 p-2 rounded-lg bg-[#E3F6F5]/40 border border-[#BAE8E8]/60 cursor-pointer hover:bg-[#E3F6F5]/80 transition-colors">
-                    <input
-                      type="checkbox"
-                      {...register("responsive_desktop")}
-                      className="h-4 w-4 rounded border-gray-300 text-[#272343] focus:ring-[#272343]"
-                    />
-                    <Monitor className="h-4 w-4 text-[#272343]" />
-                    <span className="font-medium">Desktop (100% Fluid)</span>
-                  </label>
-
-                  <label className="flex items-center gap-2.5 p-2 rounded-lg bg-[#E3F6F5]/40 border border-[#BAE8E8]/60 cursor-pointer hover:bg-[#E3F6F5]/80 transition-colors">
-                    <input
-                      type="checkbox"
-                      {...register("responsive_tablet")}
-                      className="h-4 w-4 rounded border-gray-300 text-[#272343] focus:ring-[#272343]"
-                    />
-                    <Tablet className="h-4 w-4 text-[#272343]" />
-                    <span className="font-medium">Tablet (768px Viewport)</span>
-                  </label>
-
-                  <label className="flex items-center gap-2.5 p-2 rounded-lg bg-[#E3F6F5]/40 border border-[#BAE8E8]/60 cursor-pointer hover:bg-[#E3F6F5]/80 transition-colors">
-                    <input
-                      type="checkbox"
-                      {...register("responsive_mobile")}
-                      className="h-4 w-4 rounded border-gray-300 text-[#272343] focus:ring-[#272343]"
-                    />
-                    <Smartphone className="h-4 w-4 text-[#272343]" />
-                    <span className="font-medium">Mobile (375px Viewport)</span>
-                  </label>
-                </div>
               </div>
             </CardContent>
           </Card>

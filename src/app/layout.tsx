@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Inter, JetBrains_Mono } from "next/font/google";
+import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "sonner";
 import { GlobalCommandPalette } from "@/components/search/global-command-palette";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
@@ -57,15 +58,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="id" suppressHydrationWarning>
       <body
         suppressHydrationWarning
         className={`${inter.variable} ${geist.variable} ${jetbrainsMono.variable} font-sans bg-background text-foreground antialiased min-h-screen`}
       >
+        <NextTopLoader
+          color="#272343"
+          initialPosition={0.08}
+          crawlSpeed={150}
+          height={3}
+          crawl={true}
+          showSpinner={false}
+          easing="ease"
+          speed={150}
+          shadow="0 0 10px #272343,0 0 5px #FFD803"
+        />
         <ScrollProgress />
         {children}
         <GlobalCommandPalette />
-        <Toaster position="bottom-right" richColors toastOptions={{ style: { fontFamily: "var(--font-inter)" } }} />
+        <Toaster
+          position="bottom-right"
+          richColors
+          toastOptions={{ style: { fontFamily: "var(--font-inter)" } }}
+        />
       </body>
     </html>
   );

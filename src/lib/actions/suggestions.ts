@@ -92,3 +92,44 @@ export async function deleteSuggestionAction(
     return { error: "Gagal menghapus saran." };
   }
 }
+
+/**
+ * Authenticated Admin bulk deletion of suggestions
+ */
+export async function bulkDeleteSuggestionsAction(
+  ids: string[]
+): Promise<SuggestionActionState> {
+  if (!ids || ids.length === 0) {
+    return { error: "Pilih setidaknya satu saran untuk dihapus." };
+  }
+
+  try {
+    const supabase = await createClient();
+
+    // Verify admin authentication
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { error: "Tidak memiliki izin. Silakan masuk sebagai admin." };
+    }
+
+    const { error } = await supabase
+      .from("developer_suggestions")
+      .delete()
+      .in("id", ids);
+
+    if (error) {
+      console.error("Supabase bulk delete error on developer_suggestions:", error.message);
+      return { error: error.message };
+    }
+
+    revalidatePath("/admin/suggestions");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: unknown) {
+    console.error("Unexpected error in bulkDeleteSuggestionsAction:", err);
+    return { error: "Gagal menghapus saran yang dipilih." };
+  }
+}

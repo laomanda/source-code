@@ -18,7 +18,6 @@ function slugify(text: string): string {
 }
 
 export async function createTechnologyAction(
-  _prevState: TechnologyActionState | null,
   formData: FormData
 ): Promise<TechnologyActionState> {
   const name = (formData.get("name") as string)?.trim();
@@ -36,10 +35,13 @@ export async function createTechnologyAction(
     slug = slugify(slug);
   }
 
+  if (!slug) {
+    return { error: "Gagal membuat slug dari nama teknologi." };
+  }
+
   try {
     const supabase = await createClient();
 
-    // Verify authenticated user
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return { error: "Akses ditolak. Silakan login terlebih dahulu." };
@@ -65,13 +67,12 @@ export async function createTechnologyAction(
     revalidatePath("/library");
     return { success: true };
   } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : "Gagal menambahkan teknologi." };
+    return { error: err instanceof Error ? err.message : "Gagal membuat teknologi baru." };
   }
 }
 
 export async function updateTechnologyAction(
   id: string,
-  _prevState: TechnologyActionState | null,
   formData: FormData
 ): Promise<TechnologyActionState> {
   const name = (formData.get("name") as string)?.trim();
@@ -154,5 +155,34 @@ export async function deleteTechnologyAction(id: string): Promise<TechnologyActi
     return { success: true };
   } catch (err: unknown) {
     return { error: err instanceof Error ? err.message : "Gagal menghapus teknologi." };
+  }
+}
+
+export async function bulkDeleteTechnologiesAction(ids: string[]): Promise<TechnologyActionState> {
+  if (!ids || ids.length === 0) {
+    return { error: "Pilih setidaknya satu teknologi untuk dihapus." };
+  }
+
+  try {
+    const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { error: "Tidak memiliki izin. Silakan masuk terlebih dahulu." };
+    }
+
+    const { error } = await supabase.from("technologies").delete().in("id", ids);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    revalidatePath("/admin/technologies");
+    revalidatePath("/admin/resources");
+    revalidatePath("/admin");
+    revalidatePath("/library");
+    return { success: true };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : "Gagal menghapus teknologi yang dipilih." };
   }
 }

@@ -164,3 +164,31 @@ export async function deleteResourceAction(id: string): Promise<ResourceActionSt
     return { error: err instanceof Error ? err.message : "Failed to delete resource." };
   }
 }
+
+export async function bulkDeleteResourcesAction(ids: string[]): Promise<ResourceActionState> {
+  if (!ids || ids.length === 0) {
+    return { error: "Pilih setidaknya satu komponen untuk dihapus." };
+  }
+
+  try {
+    const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { error: "Tidak memiliki izin. Silakan masuk terlebih dahulu." };
+    }
+
+    const { error } = await supabase.from("resources").delete().in("id", ids);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    revalidatePath("/admin/resources");
+    revalidatePath("/admin");
+    revalidatePath("/library");
+    return { success: true };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : "Gagal menghapus komponen yang dipilih." };
+  }
+}

@@ -202,7 +202,7 @@ function RadialItem({ item, x, y, index, onClose }: RadialItemProps) {
     <div
       className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto z-50"
     >
-      <Link href={item.href} onClick={onClose} aria-label={item.label}>
+      <Link href={item.href} prefetch={true} onClick={onClose} aria-label={item.label}>
         <motion.div
           initial={{ x: 0, y: 0, opacity: 0, scale: 0.2 }}
           animate={{ x, y, opacity: 1, scale: 1 }}

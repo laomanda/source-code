@@ -6,6 +6,7 @@ import {
   createTechnologyAction,
   updateTechnologyAction,
   deleteTechnologyAction,
+  bulkDeleteTechnologiesAction,
 } from "@/lib/actions/technologies";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,8 +20,9 @@ import {
   X,
   AlertCircle,
   Check,
-  Cpu,
-  Layers,
+  CheckSquare,
+  Square,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -30,6 +32,7 @@ export interface TechnologyManagerProps {
 
 export function TechnologyManager({ initialTechnologies }: TechnologyManagerProps) {
   const [technologies, setTechnologies] = React.useState(initialTechnologies);
+  const [searchQuery, setSearchQuery] = React.useState("");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingTech, setEditingTech] = React.useState<AdminTechnologyWithCount | null>(null);
 
@@ -41,9 +44,16 @@ export function TechnologyManager({ initialTechnologies }: TechnologyManagerProp
   const [isLoading, setIsLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
-  // Delete Dialog State
+  // Selection State
+  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
+
+  // Single Delete Dialog State
   const [techToDelete, setTechToDelete] = React.useState<AdminTechnologyWithCount | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
+
+  // Bulk Delete Dialog State
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = React.useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = React.useState(false);
 
   React.useEffect(() => {
     setTechnologies(initialTechnologies);
@@ -59,6 +69,39 @@ export function TechnologyManager({ initialTechnologies }: TechnologyManagerProp
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isModalOpen]);
+
+  const filteredTechnologies = React.useMemo(() => {
+    if (!searchQuery.trim()) return technologies;
+    const q = searchQuery.toLowerCase().trim();
+    return technologies.filter(
+      (t) =>
+        t.name.toLowerCase().includes(q) ||
+        t.slug.toLowerCase().includes(q) ||
+        (t.description && t.description.toLowerCase().includes(q))
+    );
+  }, [technologies, searchQuery]);
+
+  const handleToggleSelectAll = () => {
+    if (selectedIds.size === filteredTechnologies.length && filteredTechnologies.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredTechnologies.map((t) => t.id)));
+    }
+  };
+
+  const handleToggleSelect = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    setSelectedIds(next);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedIds(new Set());
+  };
 
   const openCreateModal = () => {
     setEditingTech(null);
@@ -111,7 +154,7 @@ export function TechnologyManager({ initialTechnologies }: TechnologyManagerProp
 
     try {
       if (editingTech) {
-        const res = await updateTechnologyAction(editingTech.id, null, formData);
+        const res = await updateTechnologyAction(editingTech.id, formData);
         if (res.error) {
           setErrorMessage(res.error);
           toast.error(res.error);
@@ -134,7 +177,7 @@ export function TechnologyManager({ initialTechnologies }: TechnologyManagerProp
         );
         toast.success(`Teknologi "${name}" berhasil diperbarui!`);
       } else {
-        const res = await createTechnologyAction(null, formData);
+        const res = await createTechnologyAction(formData);
         if (res.error) {
           setErrorMessage(res.error);
           toast.error(res.error);
@@ -143,7 +186,7 @@ export function TechnologyManager({ initialTechnologies }: TechnologyManagerProp
         }
 
         const newTech: AdminTechnologyWithCount = {
-          id: Math.random().toString(),
+          id: Date.now().toString(),
           name,
           slug,
           icon: icon || null,
@@ -178,6 +221,11 @@ export function TechnologyManager({ initialTechnologies }: TechnologyManagerProp
       }
 
       setTechnologies((prev) => prev.filter((t) => t.id !== techToDelete.id));
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(techToDelete.id);
+        return next;
+      });
       toast.success(`Teknologi "${techToDelete.name}" berhasil dihapus.`);
       setTechToDelete(null);
     } catch {
@@ -186,6 +234,35 @@ export function TechnologyManager({ initialTechnologies }: TechnologyManagerProp
       setIsDeleting(false);
     }
   };
+
+  const handleConfirmBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+
+    const idsToDelete = Array.from(selectedIds);
+    setIsBulkDeleting(true);
+
+    try {
+      const res = await bulkDeleteTechnologiesAction(idsToDelete);
+      if (res.error) {
+        toast.error(res.error);
+      } else {
+        toast.success(`Berhasil menghapus ${idsToDelete.length} teknologi.`);
+        setTechnologies((prev) => prev.filter((t) => !selectedIds.has(t.id)));
+        setSelectedIds(new Set());
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Gagal menghapus teknologi terpilih.";
+      toast.error(msg);
+    } finally {
+      setIsBulkDeleting(false);
+      setShowBulkDeleteDialog(false);
+    }
+  };
+
+  const isAllSelected =
+    filteredTechnologies.length > 0 && selectedIds.size === filteredTechnologies.length;
+  const isPartiallySelected =
+    selectedIds.size > 0 && selectedIds.size < filteredTechnologies.length;
 
   return (
     <div className="space-y-6">
@@ -196,174 +273,266 @@ export function TechnologyManager({ initialTechnologies }: TechnologyManagerProp
             Daftar Teknologi & Framework ({technologies.length})
           </h2>
           <p className="text-xs text-[#2D334A]/80">
-            Kelola teknologi yang terhubung dengan komponen resource dan tampil di filter halaman library.
+            Kelola teknologi yang terhubung dengan komponen dan tampil di filter halaman library.
           </p>
         </div>
-        <Button onClick={openCreateModal} variant="primary" size="sm" className="gap-2 font-semibold">
-          <Plus className="h-4 w-4" />
+
+        <Button
+          type="button"
+          variant="primary"
+          size="sm"
+          onClick={openCreateModal}
+          className="gap-1.5 font-semibold"
+        >
+          <Plus className="h-3.5 w-3.5" />
           <span>Tambah Teknologi</span>
         </Button>
       </div>
 
-      {/* Technologies Grid List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {technologies.map((tech) => (
-          <Card key={tech.id} className="border border-[#BAE8E8] shadow-soft-sm bg-white hover:border-[#8CD3D3] transition-all">
-            <CardContent className="p-5 flex flex-col justify-between h-full space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-lg bg-[#E3F6F5] border border-[#BAE8E8] flex items-center justify-center text-[#272343]">
-                      <Cpu className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <h3 className="font-heading font-bold text-base text-[#272343]">
-                        {tech.name}
-                      </h3>
-                      <span className="font-mono text-[11px] text-[#2D334A]/60">
-                        slug: {tech.slug}
-                      </span>
-                    </div>
-                  </div>
-
-                  <Badge variant="secondary" size="sm" className="gap-1 font-mono text-[11px]">
-                    <Layers className="h-3 w-3" />
-                    <span>{tech.resourceCount} resource</span>
-                  </Badge>
-                </div>
-
-                {tech.description ? (
-                  <p className="text-xs text-[#2D334A]/80 line-clamp-2 leading-relaxed">
-                    {tech.description}
-                  </p>
-                ) : (
-                  <p className="text-xs text-[#2D334A]/40 italic">
-                    Belum ada deskripsi untuk teknologi ini.
-                  </p>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#BAE8E8]/50">
-                <Button
-                  onClick={() => openEditModal(tech)}
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2.5 text-xs text-[#2D334A] hover:text-[#272343] hover:bg-[#E3F6F5] gap-1"
-                >
-                  <Edit className="h-3.5 w-3.5" />
-                  <span>Edit</span>
-                </Button>
-                <Button
-                  onClick={() => setTechToDelete(tech)}
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2.5 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  <span>Hapus</span>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-
-        {technologies.length === 0 && (
-          <div className="col-span-full text-center py-12 rounded-xl border border-dashed border-[#BAE8E8] bg-[#FBFDFD] space-y-3">
-            <Cpu className="h-8 w-8 text-[#2D334A]/40 mx-auto" />
-            <p className="text-sm text-[#2D334A]/70">Belum ada teknologi yang ditambahkan.</p>
-            <Button onClick={openCreateModal} variant="outline" size="sm" className="gap-1.5">
-              <Plus className="h-3.5 w-3.5" />
-              <span>Tambah Teknologi Pertama</span>
-            </Button>
-          </div>
-        )}
+      {/* Search Filter */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#2D334A]/50" />
+        <Input
+          placeholder="Cari teknologi..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 h-9 text-xs"
+        />
       </div>
 
-      {/* Modal Dialog: Add / Edit Technology */}
+      {/* Floating Bulk Action Bar */}
+      {selectedIds.size > 0 && (
+        <div className="p-3 rounded-xl bg-[#272343] text-white shadow-soft-lg flex flex-wrap items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="flex items-center gap-2 text-xs">
+            <span className="h-5 px-2 rounded bg-[#FFD803] text-[#272343] font-bold font-mono text-[11px] flex items-center justify-center">
+              {selectedIds.size}
+            </span>
+            <span className="font-medium">Teknologi dipilih</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleClearSelection}
+              className="h-8 text-xs bg-white/10 text-white border-white/20 hover:bg-white/20 hover:text-white"
+            >
+              <X className="h-3.5 w-3.5 mr-1" />
+              <span>Batal</span>
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              onClick={() => setShowBulkDeleteDialog(true)}
+              className="h-8 text-xs bg-rose-600 hover:bg-rose-700 text-white font-semibold gap-1.5 shadow-sm"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>Hapus Terpilih ({selectedIds.size})</span>
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Table Card */}
+      <Card className="border-[#BAE8E8] bg-white shadow-soft overflow-hidden">
+        <CardContent className="p-0">
+          {filteredTechnologies.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#E3F6F5]/50 border-b border-[#BAE8E8] text-[#2D334A] font-semibold">
+                  <tr>
+                    <th className="py-3 px-4 w-10 text-center">
+                      <button
+                        type="button"
+                        onClick={handleToggleSelectAll}
+                        className="p-1 text-[#272343] hover:text-[#0D6E6E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] rounded"
+                        title={isAllSelected ? "Batalkan semua pilihan" : "Pilih semua"}
+                      >
+                        {isAllSelected ? (
+                          <CheckSquare className="h-4 w-4 text-[#272343]" />
+                        ) : isPartiallySelected ? (
+                          <CheckSquare className="h-4 w-4 text-[#272343]/60" />
+                        ) : (
+                          <Square className="h-4 w-4 text-[#2D334A]/50" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="py-3 px-4">Nama</th>
+                    <th className="py-3 px-4">Slug</th>
+                    <th className="py-3 px-4">Deskripsi</th>
+                    <th className="py-3 px-4">Jumlah Komponen</th>
+                    <th className="py-3 px-4 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#BAE8E8]/40 text-[#2D334A]">
+                  {filteredTechnologies.map((item) => {
+                    const isSelected = selectedIds.has(item.id);
+
+                    return (
+                      <tr
+                        key={item.id}
+                        className={`hover:bg-[#F4F9F9] transition-colors ${
+                          isSelected ? "bg-[#E3F6F5]/40" : ""
+                        }`}
+                      >
+                        <td className="py-3.5 px-4 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleSelect(item.id)}
+                            className="p-1 text-[#272343] hover:text-[#0D6E6E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] rounded"
+                          >
+                            {isSelected ? (
+                              <CheckSquare className="h-4 w-4 text-[#272343]" />
+                            ) : (
+                              <Square className="h-4 w-4 text-[#2D334A]/40" />
+                            )}
+                          </button>
+                        </td>
+
+                        <td className="py-3.5 px-4 font-semibold text-[#272343]">
+                          {item.name}
+                        </td>
+
+                        <td className="py-3.5 px-4 font-mono text-[11px] text-[#2D334A]/80">
+                          /{item.slug}
+                        </td>
+
+                        <td className="py-3.5 px-4 text-[#2D334A]/80 max-w-xs truncate">
+                          {item.description || "-"}
+                        </td>
+
+                        <td className="py-3.5 px-4">
+                          <Badge variant="navy" size="sm">
+                            {item.resourceCount} komponen
+                          </Badge>
+                        </td>
+
+                        <td className="py-3.5 px-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openEditModal(item)}
+                              className="h-7 px-2 text-xs gap-1 border-[#BAE8E8]"
+                            >
+                              <Edit className="h-3 w-3" />
+                              <span>Edit</span>
+                            </Button>
+
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => setTechToDelete(item)}
+                              title="Hapus Teknologi"
+                              className="h-7 w-7 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-8 text-center text-xs text-[#2D334A]/60">
+              Tidak ada teknologi ditemukan.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Create / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
-          <div
-            className="w-full max-w-md bg-white rounded-xl shadow-soft-2xl border border-[#BAE8E8] overflow-hidden"
-            role="dialog"
-            aria-modal="true"
-          >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#BAE8E8] bg-[#FBFDFD]">
-              <h3 className="font-heading font-bold text-base text-[#272343]">
-                {editingTech ? `Edit Teknologi "${editingTech.name}"` : "Tambah Teknologi Baru"}
-              </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="w-full max-w-md rounded-xl border border-[#BAE8E8] bg-white p-6 shadow-soft-lg space-y-4">
+            <div className="flex items-center justify-between border-b border-[#BAE8E8]/60 pb-3">
+              <h2 className="text-base font-bold text-[#272343]">
+                {editingTech ? "Edit Teknologi" : "Tambah Teknologi Baru"}
+              </h2>
               <button
                 type="button"
                 onClick={closeModal}
-                className="p-1 rounded-md text-[#2D334A]/60 hover:text-[#272343] hover:bg-[#E3F6F5]"
+                className="p-1 text-[#2D334A]/60 hover:text-[#272343] rounded"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {errorMessage && (
-                <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  <span>{errorMessage}</span>
-                </div>
-              )}
+            {errorMessage && (
+              <div className="p-3 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
 
+            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-[#272343]">
+                <label htmlFor="tech-name" className="font-semibold text-[#272343]">
                   Nama Teknologi <span className="text-rose-500">*</span>
                 </label>
                 <Input
-                  type="text"
+                  id="tech-name"
+                  required
+                  placeholder="e.g. React, Next.js, Tailwind CSS"
                   value={name}
                   onChange={(e) => handleNameChange(e.target.value)}
-                  placeholder="Contoh: React, Next.js, Tailwind CSS"
-                  required
-                  className="h-10 text-sm"
+                  disabled={isLoading}
+                  className="h-9 text-xs"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-[#272343]">
+                <label htmlFor="tech-slug" className="font-semibold text-[#272343]">
                   Slug URL <span className="text-rose-500">*</span>
                 </label>
                 <Input
-                  type="text"
+                  id="tech-slug"
+                  required
+                  placeholder="e.g. react, nextjs, tailwind"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
-                  placeholder="contoh: react, nextjs, tailwind"
-                  required
-                  className="h-10 font-mono text-xs"
+                  disabled={isLoading}
+                  className="h-9 text-xs font-mono"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-[#272343]">
-                  Icon / Logo (Opsional)
+                <label htmlFor="tech-icon" className="font-semibold text-[#272343]">
+                  Nama Icon Lucide (Opsional)
                 </label>
                 <Input
-                  type="text"
+                  id="tech-icon"
+                  placeholder="e.g. Atom, Code2, Layers, Cpu"
                   value={icon}
                   onChange={(e) => setIcon(e.target.value)}
-                  placeholder="Nama ikon atau URL logo"
-                  className="h-10 text-xs font-mono"
+                  disabled={isLoading}
+                  className="h-9 text-xs"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-[#272343]">
+                <label htmlFor="tech-desc" className="font-semibold text-[#272343]">
                   Deskripsi Singkat (Opsional)
                 </label>
                 <textarea
+                  id="tech-desc"
+                  rows={2}
+                  placeholder="Deskripsi framework/teknologi ini..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Jelaskan ringkasan teknologi ini..."
-                  rows={3}
-                  className="w-full rounded-md border border-[#BAE8E8] bg-white px-3 py-2 text-xs text-[#272343] placeholder:text-[#2D334A]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343]"
+                  disabled={isLoading}
+                  className="w-full rounded-md border border-[#BAE8E8] bg-white p-2.5 text-xs text-[#272343] shadow-soft-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343]"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#BAE8E8]/60">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#BAE8E8]/60">
                 <Button
                   type="button"
                   variant="outline"
@@ -380,8 +549,14 @@ export function TechnologyManager({ initialTechnologies }: TechnologyManagerProp
                   disabled={isLoading}
                   className="gap-1.5 font-semibold"
                 >
-                  <Check className="h-4 w-4" />
-                  <span>{isLoading ? "Menyimpan..." : editingTech ? "Simpan Perubahan" : "Buat Teknologi"}</span>
+                  {isLoading ? (
+                    <span>Menyimpan...</span>
+                  ) : (
+                    <>
+                      <Check className="h-3.5 w-3.5" />
+                      <span>{editingTech ? "Simpan Perubahan" : "Buat Teknologi"}</span>
+                    </>
+                  )}
                 </Button>
               </div>
             </form>
@@ -389,16 +564,24 @@ export function TechnologyManager({ initialTechnologies }: TechnologyManagerProp
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Single Delete Confirmation Dialog */}
       <DeleteConfirmDialog
         isOpen={!!techToDelete}
         title="Hapus Teknologi"
-        itemName={techToDelete?.name || ""}
-        itemType="teknologi"
-        description={`Apakah Anda yakin ingin menghapus teknologi "${techToDelete?.name}"? Tindakan ini tidak akan menghapus resource yang terhubung, namun kolom relasi teknologinya akan dikosongkan.`}
-        isLoading={isDeleting}
+        description={`Apakah Anda yakin ingin menghapus teknologi "${techToDelete?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+        isDeleting={isDeleting}
         onConfirm={handleDelete}
-        onClose={() => setTechToDelete(null)}
+        onCancel={() => setTechToDelete(null)}
+      />
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={showBulkDeleteDialog}
+        title={`Hapus ${selectedIds.size} Teknologi Terpilih`}
+        description={`Apakah Anda yakin ingin menghapus ${selectedIds.size} teknologi yang dipilih sekaligus? Tindakan ini tidak dapat dibatalkan.`}
+        isDeleting={isBulkDeleting}
+        onConfirm={handleConfirmBulkDelete}
+        onCancel={() => setShowBulkDeleteDialog(false)}
       />
     </div>
   );

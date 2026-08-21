@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Resource } from "@/types";
+import { Resource, CategoryType } from "@/types";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,7 @@ export function FavoritesView({ allResources }: FavoritesViewProps) {
   const [visibleCount, setVisibleCount] = React.useState(PAGE_SIZE);
 
   // Map saved favorite items to complete Resource objects for rendering ResourceCard
-  const favoriteResources = React.useMemo(() => {
+  const favoriteResources = React.useMemo<Resource[]>(() => {
     const resourceMap = new Map(allResources.map((r) => [r.slug, r]));
 
     return favoriteItems.map((item) => {
@@ -42,7 +42,7 @@ export function FavoritesView({ allResources }: FavoritesViewProps) {
         title: item.title,
         slug: item.slug,
         description: "",
-        category: item.category || "Components",
+        category: (item.category as CategoryType) || "Components",
         technology: item.technology || "React · Tailwind",
         tags: [],
         sourceCode: "",
@@ -57,7 +57,7 @@ export function FavoritesView({ allResources }: FavoritesViewProps) {
   }, [allResources, favoriteItems]);
 
   // Filter favorite resources by search term
-  const filteredResources = React.useMemo(() => {
+  const filteredResources = React.useMemo<Resource[]>(() => {
     if (!searchQuery.trim()) return favoriteResources;
     const tokens = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
 

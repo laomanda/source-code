@@ -7,34 +7,44 @@ import { Trash2, X, AlertTriangle, Loader2 } from "lucide-react";
 export interface DeleteConfirmDialogProps {
   isOpen: boolean;
   title: string;
-  itemName: string;
+  itemName?: string;
   itemType?: string;
   description?: string;
   isLoading?: boolean;
+  isDeleting?: boolean;
   onConfirm: () => void | Promise<void>;
-  onClose: () => void;
+  onClose?: () => void;
+  onCancel?: () => void;
 }
 
 export function DeleteConfirmDialog({
   isOpen,
   title,
-  itemName,
+  itemName = "",
   itemType = "item",
   description,
   isLoading = false,
+  isDeleting = false,
   onConfirm,
   onClose,
+  onCancel,
 }: DeleteConfirmDialogProps) {
+  const loading = isLoading || isDeleting;
+  const handleClose = React.useCallback(() => {
+    if (onCancel) onCancel();
+    else if (onClose) onClose();
+  }, [onCancel, onClose]);
+
   // Handle escape key
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen && !isLoading) {
-        onClose();
+      if (e.key === "Escape" && isOpen && !loading) {
+        handleClose();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, isLoading, onClose]);
+  }, [isOpen, loading, handleClose]);
 
   if (!isOpen) return null;
 
@@ -64,65 +74,65 @@ export function DeleteConfirmDialog({
                 {title}
               </h3>
               <p className="text-xs text-[#2D334A]/70 mt-0.5">
-                This action is permanent and cannot be undone.
+                Tindakan ini tidak dapat dibatalkan.
               </p>
             </div>
           </div>
 
           <button
             type="button"
-            onClick={onClose}
-            disabled={isLoading}
-            className="p-1 rounded-md text-[#2D334A]/60 hover:text-[#272343] hover:bg-[#E3F6F5]/50 transition-colors disabled:opacity-50"
-            aria-label="Close dialog"
+            onClick={handleClose}
+            disabled={loading}
+            className="p-1 rounded-md text-[#2D334A]/60 hover:text-[#272343] hover:bg-slate-100 transition-colors disabled:opacity-50"
+            aria-label="Tutup"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Content Body */}
-        <div id="delete-dialog-desc" className="space-y-2 text-xs text-[#2D334A]">
-          <p>
-            Are you sure you want to delete this {itemType}:
-          </p>
-          <div className="p-3 rounded-lg bg-[#F8FAFC] border border-[#BAE8E8]/60 font-medium text-[#272343] break-all">
-            &ldquo;{itemName}&rdquo;
-          </div>
-          {description && (
-            <p className="text-[11px] text-[#2D334A]/80 leading-relaxed">
-              {description}
+        {/* Content */}
+        <div className="text-xs text-[#2D334A] leading-relaxed space-y-2">
+          {description ? (
+            <p id="delete-dialog-desc">{description}</p>
+          ) : (
+            <p id="delete-dialog-desc">
+              Apakah Anda yakin ingin menghapus {itemType}{" "}
+              <strong className="text-[#272343] font-semibold">{itemName}</strong>? Data
+              yang dihapus akan hilang secara permanen dari basis data.
             </p>
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#BAE8E8]/40">
+        {/* Footer Actions */}
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#BAE8E8]/60">
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={onClose}
-            disabled={isLoading}
-            className="text-xs"
+            onClick={handleClose}
+            disabled={loading}
+            className="border-[#BAE8E8] text-[#2D334A] hover:bg-[#E3F6F5]/50"
           >
-            Cancel
+            Batal
           </Button>
+
           <Button
             type="button"
+            variant="destructive"
             size="sm"
             onClick={onConfirm}
-            disabled={isLoading}
-            className="bg-rose-600 text-white hover:bg-rose-700 font-semibold text-xs gap-1.5 shadow-soft-sm focus-visible:ring-rose-500"
+            disabled={loading}
+            className="bg-rose-600 hover:bg-rose-700 text-white font-semibold gap-1.5 shadow-sm"
           >
-            {isLoading ? (
+            {loading ? (
               <>
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>Deleting...</span>
+                <span>Menghapus...</span>
               </>
             ) : (
               <>
                 <Trash2 className="h-3.5 w-3.5" />
-                <span>Delete Permanently</span>
+                <span>Hapus Sekarang</span>
               </>
             )}
           </Button>

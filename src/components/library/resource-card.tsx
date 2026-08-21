@@ -67,6 +67,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
       {/* Clickable Preview Canvas (16:10 aspect ratio) */}
       <Link
         href={`/resource/${resource.slug}`}
+        prefetch={true}
         className="aspect-[16/10] w-full relative bg-[#F8FAFC] border-b border-[#BAE8E8]/50 overflow-hidden flex items-center justify-center cursor-pointer block"
         title={`Buka ${resource.title}`}
       >
@@ -115,6 +116,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
         {/* Left: Component Title */}
         <Link
           href={`/resource/${resource.slug}`}
+          prefetch={true}
           className="min-w-0 flex-1 group/title"
         >
           <span className="font-heading font-semibold text-sm text-[#272343] truncate block group-hover/title:text-[#0D6E6E] transition-colors">
