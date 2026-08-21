@@ -382,7 +382,6 @@ export function StaggerButton({
     </div>
     <div class="p-3.5 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 text-slate-950 flex flex-col justify-between text-left shadow-md">
       <span class="font-black text-lg">100%</span>
-      <span class="text-[10px] font-bold">Free & Open</span>
     </div>
   </div>
 </div>`,

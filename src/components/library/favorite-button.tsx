@@ -46,9 +46,9 @@ export function FavoriteButton({
       onClick={handleClick}
       variant={active ? "secondary" : variant}
       size={showLabel ? "sm" : size}
-      aria-label={active ? `Remove ${title || slug} from favorites` : `Add ${title || slug} to favorites`}
+      aria-label={active ? `Hapus ${title || slug} dari favorit` : `Tambahkan ${title || slug} ke favorit`}
       aria-pressed={active}
-      title={active ? "Remove from Favorites" : "Add to Favorites"}
+      title={active ? "Hapus dari Favorit" : "Simpan ke Favorit"}
       className={`transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] ${
         active
           ? "bg-[#FFD803] text-[#272343] border-[#F2CD00] hover:bg-[#F2CD00] shadow-soft-sm font-semibold"
@@ -62,7 +62,7 @@ export function FavoriteButton({
       />
       {showLabel && (
         <span className="text-xs font-medium ml-1.5">
-          {active ? "Favorited" : "Favorite"}
+          {active ? "Tersimpan" : "Favorit"}
         </span>
       )}
     </Button>

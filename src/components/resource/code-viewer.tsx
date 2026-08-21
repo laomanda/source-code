@@ -29,7 +29,7 @@ export async function CodeViewer({ sourceCode, technology, slug }: CodeViewerPro
       theme: "github-dark-default",
     });
   } catch (err) {
-    console.warn(`Shiki highlighting failed for ${lang}, falling back to plain text:`, err);
+    console.warn(`Shiki highlighting gagal untuk ${lang}, menggunakan plain text:`, err);
     try {
       highlightedHtml = await codeToHtml(sourceCode, {
         lang: "text",
@@ -58,7 +58,7 @@ export async function CodeViewer({ sourceCode, technology, slug }: CodeViewerPro
             <span>{slug}.{lang === "text" ? "txt" : lang}</span>
           </span>
           <span className="text-[11px] font-mono text-slate-400 hidden sm:inline-block">
-            ({lineCount} lines)
+            ({lineCount} baris)
           </span>
         </div>
 
@@ -68,14 +68,14 @@ export async function CodeViewer({ sourceCode, technology, slug }: CodeViewerPro
 
       {/* Highlighted Code Container */}
       <div
-        className="p-4 sm:p-6 overflow-x-auto font-mono text-xs sm:text-sm leading-relaxed text-slate-200 [&_pre]:!bg-transparent [&_code]:!bg-transparent"
+        className="p-4 sm:p-6 overflow-x-auto code-scrollbar font-mono text-xs sm:text-sm leading-relaxed text-slate-200 [&_pre]:!bg-transparent [&_code]:!bg-transparent"
         dangerouslySetInnerHTML={{ __html: highlightedHtml }}
       />
 
       {/* Code Viewer Footer */}
       <div className="px-4 py-2 bg-[#1E1B35]/80 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400">
-        <span>Language: <strong className="text-[#FFD803] uppercase">{lang}</strong></span>
-        <span>Ready to copy & build</span>
+        <span>Bahasa: <strong className="text-[#FFD803] uppercase">{lang}</strong></span>
+        <span>Siap disalin & digunakan</span>
       </div>
     </div>
   );

@@ -9,7 +9,6 @@ import { ResourceBreadcrumb } from "@/components/resource/resource-breadcrumb";
 import { ResourceHeader } from "@/components/resource/resource-header";
 import { PreviewFrame } from "@/components/resource/preview-frame";
 import { CodeViewer } from "@/components/resource/code-viewer";
-import { ResourceMetadata } from "@/components/resource/resource-metadata";
 import { getResourceBySlug, getPublishedResources } from "@/lib/data/resources";
 import { Eye, Edit } from "lucide-react";
 
@@ -30,13 +29,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!resource) {
     return {
-      title: "Resource Not Found — JakDev",
-      description: "The requested resource could not be found.",
+      title: "Komponen Tidak Ditemukan — JakDev",
+      description: "Komponen atau source code yang Anda cari tidak ditemukan.",
     };
   }
 
   return {
-    title: `${resource.title} — JakDev Free Source Code`,
+    title: `${resource.title} — Source Code Gratis JakDev`,
     description: resource.description,
     openGraph: {
       title: `${resource.title} — JakDev`,
@@ -67,10 +66,10 @@ export default async function ResourceDetailPage({ params }: PageProps) {
                 </div>
                 <div>
                   <div className="font-heading font-bold text-xs uppercase tracking-wider text-amber-900">
-                    Admin Draft Preview Mode
+                    Mode Pratinjau Draf Admin
                   </div>
                   <p className="text-[11px] text-amber-800">
-                    This component is currently in <strong>Draft</strong> status and hidden from public visitors.
+                    Komponen ini saat ini berstatus <strong>Draf</strong> dan disembunyikan dari pengunjung publik.
                   </p>
                 </div>
               </div>
@@ -79,7 +78,7 @@ export default async function ResourceDetailPage({ params }: PageProps) {
                 <Button asChild size="sm" variant="outline" className="h-8 text-xs bg-white border-amber-300">
                   <Link href={`/admin/resources/${resource.id}/edit`}>
                     <Edit className="h-3 w-3 mr-1" />
-                    <span>Edit & Publish</span>
+                    <span>Edit & Publikasikan</span>
                   </Link>
                 </Button>
               </div>
@@ -95,7 +94,7 @@ export default async function ResourceDetailPage({ params }: PageProps) {
           {/* Live Sandboxed Preview */}
           <section aria-labelledby="preview-heading" className="space-y-3">
             <h2 id="preview-heading" className="sr-only">
-              Live Preview
+              Pratinjau Langsung
             </h2>
             <PreviewFrame resource={resource} />
           </section>
@@ -112,14 +111,6 @@ export default async function ResourceDetailPage({ params }: PageProps) {
               technology={resource.technology}
               slug={resource.slug}
             />
-          </section>
-
-          {/* Specifications & License */}
-          <section aria-labelledby="specs-heading">
-            <h2 id="specs-heading" className="sr-only">
-              Specifications
-            </h2>
-            <ResourceMetadata resource={resource} />
           </section>
         </Container>
       </main>

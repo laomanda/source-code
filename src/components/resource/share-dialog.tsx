@@ -58,21 +58,21 @@ export function ShareDialog({
 
   if (!isOpen) return null;
 
-  const shareText = `Check out "${title}" on JakDev — Free developer source code (${technology})!`;
-  const markdownSnippet = `[${title} — Free Source Code on JakDev](${currentUrl})`;
+  const shareText = `Lihat "${title}" di JakDev — Source code gratis developer (${technology})!`;
+  const markdownSnippet = `[${title} — Source Code Gratis di JakDev](${currentUrl})`;
 
   const handleCopyLink = async () => {
     if (!currentUrl) return;
     try {
       await navigator.clipboard.writeText(currentUrl);
       setCopiedLink(true);
-      toast.success("Link copied to clipboard!", {
-        description: "You can now paste and share it anywhere.",
+      toast.success("Tautan berhasil disalin ke clipboard!", {
+        description: "Sekarang Anda dapat membagikannya ke mana saja.",
       });
       setTimeout(() => setCopiedLink(false), 2000);
     } catch (err) {
-      console.error("Failed to copy link:", err);
-      toast.error("Failed to copy link");
+      console.error("Gagal menyalin tautan:", err);
+      toast.error("Gagal menyalin tautan.");
     }
   };
 
@@ -80,13 +80,13 @@ export function ShareDialog({
     try {
       await navigator.clipboard.writeText(markdownSnippet);
       setCopiedMarkdown(true);
-      toast.success("Markdown snippet copied!", {
-        description: "Ready to paste in GitHub issues or README files.",
+      toast.success("Format Markdown berhasil disalin!", {
+        description: "Siap ditempelkan di issue GitHub atau file README.",
       });
       setTimeout(() => setCopiedMarkdown(false), 2000);
     } catch (err) {
-      console.error("Failed to copy markdown:", err);
-      toast.error("Failed to copy markdown");
+      console.error("Gagal menyalin format markdown:", err);
+      toast.error("Gagal menyalin format markdown.");
     }
   };
 
@@ -98,11 +98,11 @@ export function ShareDialog({
           text: description || shareText,
           url: currentUrl,
         });
-        toast.success("Shared successfully!");
+        toast.success("Berhasil dibagikan!");
         onClose();
       } catch (err: unknown) {
         if (err instanceof Error && err.name !== "AbortError") {
-          console.error("Error sharing:", err);
+          console.error("Gagal membagikan:", err);
         }
       }
     }
@@ -171,7 +171,7 @@ export function ShareDialog({
                 id="share-dialog-title"
                 className="text-base font-heading font-bold text-[#272343]"
               >
-                Share Resource
+                Bagikan Komponen
               </h3>
               <div className="flex items-center gap-1.5 text-xs text-[#2D334A]/70 truncate max-w-[260px] sm:max-w-xs mt-0.5">
                 <span className="font-semibold text-[#272343] truncate">{title}</span>
@@ -188,7 +188,7 @@ export function ShareDialog({
             type="button"
             onClick={onClose}
             className="p-1 rounded-md text-[#2D334A]/60 hover:text-[#272343] hover:bg-[#E3F6F5]/60 transition-colors"
-            aria-label="Close share dialog"
+            aria-label="Tutup dialog bagikan"
           >
             <X className="h-5 w-5" />
           </button>
@@ -197,7 +197,7 @@ export function ShareDialog({
         {/* Direct Link Copy */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-[#272343]">
-            Direct Link
+            Tautan Langsung
           </label>
           <div className="flex items-center gap-2">
             <Input
@@ -216,12 +216,12 @@ export function ShareDialog({
               {copiedLink ? (
                 <>
                   <Check className="h-3.5 w-3.5" />
-                  <span>Copied!</span>
+                  <span>Tersalin!</span>
                 </>
               ) : (
                 <>
                   <Copy className="h-3.5 w-3.5" />
-                  <span>Copy</span>
+                  <span>Salin</span>
                 </>
               )}
             </Button>
@@ -231,7 +231,7 @@ export function ShareDialog({
         {/* Social Share Shortcuts */}
         <div className="space-y-2">
           <label className="text-xs font-semibold text-[#272343]">
-            Share to Socials & Messaging
+            Bagikan ke Media Sosial & Pesan
           </label>
           <div className="grid grid-cols-2 gap-2">
             {socialLinks.map((item) => (
@@ -264,7 +264,7 @@ export function ShareDialog({
               ) : (
                 <FileCode2 className="h-3.5 w-3.5 text-[#0D6E6E]" />
               )}
-              <span>{copiedMarkdown ? "Markdown Copied!" : "Copy Markdown link"}</span>
+              <span>{copiedMarkdown ? "Markdown Tersalin!" : "Salin tautan Markdown"}</span>
             </button>
 
             {/* Native OS Share Sheet */}
@@ -275,7 +275,7 @@ export function ShareDialog({
                 className="inline-flex items-center gap-1.5 text-xs text-[#0D6E6E] hover:underline font-semibold py-1 px-2"
               >
                 <Share2 className="h-3.5 w-3.5" />
-                <span>More apps...</span>
+                <span>Aplikasi lainnya...</span>
               </button>
             )}
           </div>

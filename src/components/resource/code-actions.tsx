@@ -29,13 +29,13 @@ export function CodeActions({ sourceCode, technology, slug }: CodeActionsProps) 
     try {
       await navigator.clipboard.writeText(sourceCode);
       setCopied(true);
-      toast.success("Source code copied to clipboard!", {
-        description: "Ready to paste into your project.",
+      toast.success("Source code berhasil disalin ke clipboard!", {
+        description: "Siap ditempelkan ke dalam proyek Anda.",
       });
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("Failed to copy code:", err);
-      toast.error("Failed to copy code to clipboard.");
+      console.error("Gagal menyalin kode:", err);
+      toast.error("Gagal menyalin kode ke clipboard.");
     }
   };
 
@@ -50,10 +50,10 @@ export function CodeActions({ sourceCode, technology, slug }: CodeActionsProps) 
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      toast.success(`Downloaded ${slug}.${fileExtension}`);
+      toast.success(`Berhasil mengunduh ${slug}.${fileExtension}`);
     } catch (err) {
-      console.error("Failed to download file:", err);
-      toast.error("Failed to download source file.");
+      console.error("Gagal mengunduh file:", err);
+      toast.error("Gagal mengunduh file source code.");
     }
   };
 
@@ -70,12 +70,12 @@ export function CodeActions({ sourceCode, technology, slug }: CodeActionsProps) 
         {copied ? (
           <>
             <Check className="h-3.5 w-3.5 text-[#272343]" />
-            <span>Copied!</span>
+            <span>Tersalin!</span>
           </>
         ) : (
           <>
             <Copy className="h-3.5 w-3.5 text-[#272343]" />
-            <span>Copy Code</span>
+            <span>Salin Kode</span>
           </>
         )}
       </Button>
@@ -87,10 +87,10 @@ export function CodeActions({ sourceCode, technology, slug }: CodeActionsProps) 
         variant="outline"
         size="sm"
         className="gap-1.5 bg-white hover:bg-[#E3F6F5]/60"
-        title={`Download ${slug}.${fileExtension}`}
+        title={`Unduh ${slug}.${fileExtension}`}
       >
         <Download className="h-3.5 w-3.5 text-[#272343]" />
-        <span className="hidden sm:inline">Download .{fileExtension}</span>
+        <span className="hidden sm:inline">Unduh .{fileExtension}</span>
       </Button>
     </div>
   );

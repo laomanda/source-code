@@ -134,43 +134,43 @@
    JakDev Custom Scrollbar System (Developer & IDE Aesthetics)
    ========================================================================== */
 
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
 /* 1. Global Viewport & Element Scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #FBFDFD;
-  border-left: 1px solid rgba(186, 232, 232, 0.4);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #BAE8E8;
+  background-color: rgba(186, 232, 232, 0.8);
   border-radius: 9999px;
-  border: 2px solid #FBFDFD;
-  background-clip: padding-box;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #272343;
-  border-color: #FBFDFD;
+  background-color: rgba(67, 188, 205, 0.9);
 }
 
 ::-webkit-scrollbar-thumb:active {
-  background-color: #FFD803;
-  border-color: #272343;
+  background-color: #272343;
 }
 
 ::-webkit-scrollbar-corner {
-  background: #FFFFFF;
+  background: transparent;
 }
 
 /* Firefox Standard Support */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #BAE8E8 #FBFDFD;
+  scrollbar-color: rgba(186, 232, 232, 0.8) transparent;
 }
 
 /* ==========================================================================

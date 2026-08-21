@@ -8,7 +8,7 @@ export interface ResourceBreadcrumbProps {
 
 export function ResourceBreadcrumb({ title }: ResourceBreadcrumbProps) {
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center text-xs text-[#2D334A]/70">
+    <nav aria-label="Navigasi Halaman" className="flex items-center text-xs text-[#2D334A]/70">
       <ol className="flex items-center space-x-2">
         <li>
           <Link
@@ -16,7 +16,7 @@ export function ResourceBreadcrumb({ title }: ResourceBreadcrumbProps) {
             className="flex items-center gap-1 hover:text-[#272343] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] rounded"
           >
             <Home className="h-3.5 w-3.5" />
-            <span className="sr-only">Home</span>
+            <span className="sr-only">Beranda</span>
           </Link>
         </li>
         <li className="flex items-center">
@@ -27,7 +27,7 @@ export function ResourceBreadcrumb({ title }: ResourceBreadcrumbProps) {
             href="/library"
             className="hover:text-[#272343] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] rounded px-1"
           >
-            Library
+            Pustaka
           </Link>
         </li>
         <li className="flex items-center">
