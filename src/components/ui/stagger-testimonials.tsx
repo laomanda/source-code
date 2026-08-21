@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -78,6 +78,12 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
   cardSize,
 }) => {
   const isCenter = position === 0;
+  const absPos = Math.abs(position);
+
+  // Smoothly fade out distant cards
+  const isHidden = absPos > 3;
+
+  if (isHidden) return null;
 
   return (
     <div
@@ -85,8 +91,12 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
       className={cn(
         "absolute left-1/2 top-1/2 cursor-pointer border-2 p-6 sm:p-8 transition-all duration-500 ease-in-out select-none",
         isCenter
-          ? "z-10 bg-[#272343] text-white border-[#272343] shadow-soft-lg"
-          : "z-0 bg-white text-[#2D334A] border-[#BAE8E8] hover:border-[#272343]/50 shadow-soft-xs"
+          ? "z-10 bg-[#272343] text-white border-[#272343] shadow-soft-lg opacity-100 scale-100"
+          : absPos === 1
+          ? "z-[5] bg-white text-[#2D334A] border-[#BAE8E8] hover:border-[#272343]/50 shadow-soft-xs opacity-90 scale-95"
+          : absPos === 2
+          ? "z-[2] bg-white text-[#2D334A] border-[#BAE8E8] shadow-soft-xs opacity-60 scale-90"
+          : "z-[1] bg-white text-[#2D334A] border-[#BAE8E8] opacity-20 scale-80 pointer-events-none"
       )}
       style={{
         width: cardSize,
@@ -94,7 +104,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         clipPath: `polygon(50px 0%, calc(100% - 50px) 0%, 100% 50px, 100% 100%, calc(100% - 50px) 100%, 50px 100%, 0 100%, 0 0)`,
         transform: `
           translate(-50%, -50%) 
-          translateX(${(cardSize / 1.5) * position}px)
+          translateX(${(cardSize / 1.45) * position}px)
           translateY(${isCenter ? -55 : position % 2 ? 15 : -15}px)
           rotate(${isCenter ? 0 : position % 2 ? 2.5 : -2.5}deg)
         `,
@@ -145,32 +155,48 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
 export interface StaggerTestimonialsProps {
   items?: TestimonialItem[];
   className?: string;
+  autoPlayInterval?: number;
 }
 
 export const StaggerTestimonials: React.FC<StaggerTestimonialsProps> = ({
   items = defaultTestimonials,
   className,
+  autoPlayInterval = 4000,
 }) => {
   const [cardSize, setCardSize] = useState(365);
   const [testimonialsList, setTestimonialsList] = useState<TestimonialItem[]>(items);
+  const [isPaused, setIsPaused] = useState(false);
 
-  const handleMove = (steps: number) => {
-    const newList = [...testimonialsList];
-    if (steps > 0) {
-      for (let i = steps; i > 0; i--) {
-        const item = newList.shift();
-        if (!item) return;
-        newList.push({ ...item, tempId: Math.random() });
+  const handleMove = useCallback((steps: number) => {
+    setTestimonialsList((prevList) => {
+      const newList = [...prevList];
+      if (steps > 0) {
+        for (let i = steps; i > 0; i--) {
+          const item = newList.shift();
+          if (!item) return prevList;
+          newList.push({ ...item, tempId: Math.random() });
+        }
+      } else {
+        for (let i = steps; i < 0; i++) {
+          const item = newList.pop();
+          if (!item) return prevList;
+          newList.unshift({ ...item, tempId: Math.random() });
+        }
       }
-    } else {
-      for (let i = steps; i < 0; i++) {
-        const item = newList.pop();
-        if (!item) return;
-        newList.unshift({ ...item, tempId: Math.random() });
-      }
-    }
-    setTestimonialsList(newList);
-  };
+      return newList;
+    });
+  }, []);
+
+  // 4-second auto-rotation interval with hover pause
+  useEffect(() => {
+    if (isPaused || autoPlayInterval <= 0) return;
+
+    const timer = setInterval(() => {
+      handleMove(1);
+    }, autoPlayInterval);
+
+    return () => clearInterval(timer);
+  }, [isPaused, autoPlayInterval, handleMove]);
 
   useEffect(() => {
     const updateSize = () => {
@@ -185,9 +211,22 @@ export const StaggerTestimonials: React.FC<StaggerTestimonialsProps> = ({
 
   return (
     <div
-      className={cn("relative w-full overflow-hidden bg-transparent", className)}
-      style={{ height: 540 }}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      className={cn(
+        "relative w-full overflow-hidden bg-transparent",
+        "[mask-image:linear-gradient(to_right,transparent_0%,black_15%,black_85%,transparent_100%)]",
+        "[-webkit-mask-image:linear-gradient(to_right,transparent_0%,black_15%,black_85%,transparent_100%)]",
+        className
+      )}
+      style={{ height: 550 }}
     >
+      {/* Left Smooth Fade & Blur Overlay */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-32 sm:w-64 bg-gradient-to-r from-white via-white/80 to-transparent z-10" />
+
+      {/* Right Smooth Fade & Blur Overlay */}
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-32 sm:w-64 bg-gradient-to-l from-white via-white/80 to-transparent z-10" />
+
       {testimonialsList.map((testimonial, index) => {
         const position =
           testimonialsList.length % 2
@@ -203,30 +242,6 @@ export const StaggerTestimonials: React.FC<StaggerTestimonialsProps> = ({
           />
         );
       })}
-      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-3 z-20">
-        <button
-          onClick={() => handleMove(-1)}
-          className={cn(
-            "flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center text-xl transition-all rounded-xl",
-            "bg-white border-2 border-[#BAE8E8] text-[#272343] shadow-soft-xs hover:bg-[#FFD803] hover:border-[#272343] hover:scale-105 active:scale-95",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] focus-visible:ring-offset-2"
-          )}
-          aria-label="Previous testimonial"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </button>
-        <button
-          onClick={() => handleMove(1)}
-          className={cn(
-            "flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center text-xl transition-all rounded-xl",
-            "bg-white border-2 border-[#BAE8E8] text-[#272343] shadow-soft-xs hover:bg-[#FFD803] hover:border-[#272343] hover:scale-105 active:scale-95",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] focus-visible:ring-offset-2"
-          )}
-          aria-label="Next testimonial"
-        >
-          <ChevronRight className="h-6 w-6" />
-        </button>
-      </div>
     </div>
   );
 };

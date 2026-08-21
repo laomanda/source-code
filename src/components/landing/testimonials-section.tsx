@@ -17,9 +17,12 @@ export function TestimonialsSection() {
             Dipercaya oleh ribuan developer, UI/UX designer, dan tim produk untuk mempercepat slicing dan pembuatan antarmuka modern.
           </p>
         </div>
-
-        <StaggerTestimonials />
       </Container>
+
+      {/* Full-width carousel with edge fades */}
+      <div className="w-full relative">
+        <StaggerTestimonials />
+      </div>
     </Section>
   );
 }
