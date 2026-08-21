@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { Resource, CategoryType, Category } from "@/types";
+import { Resource, CategoryType, Category, Technology } from "@/types";
 
 export interface AdminStats {
   publishedCount: number;
@@ -39,12 +39,17 @@ export interface AdminCategoryWithCount extends Category {
   resourceCount: number;
 }
 
+export interface AdminTechnologyWithCount extends Technology {
+  resourceCount: number;
+}
+
 interface AdminResourceRow {
   id: string;
   title: string;
   slug: string;
   description: string | null;
   category_id: string | null;
+  tech_id?: string | null;
   technology: string;
   tags: string[];
   source_code: string;
@@ -90,40 +95,79 @@ export async function getAdminStats(): Promise<AdminStats> {
   }
 }
 
+const ADMIN_RESOURCE_SELECT_WITH_TECH = `
+  id,
+  title,
+  slug,
+  description,
+  category_id,
+  tech_id,
+  technology,
+  tags,
+  source_code,
+  preview_html,
+  preview_image_url,
+  responsive_desktop,
+  responsive_tablet,
+  responsive_mobile,
+  status,
+  created_at,
+  updated_at,
+  categories (
+    name
+  )
+`;
+
+const ADMIN_RESOURCE_SELECT_FALLBACK = `
+  id,
+  title,
+  slug,
+  description,
+  category_id,
+  technology,
+  tags,
+  source_code,
+  preview_html,
+  preview_image_url,
+  responsive_desktop,
+  responsive_tablet,
+  responsive_mobile,
+  status,
+  created_at,
+  updated_at,
+  categories (
+    name
+  )
+`;
+
 export async function getAllAdminResources(): Promise<Resource[]> {
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
+    const res = await supabase
       .from("resources")
-      .select(`
-        id,
-        title,
-        slug,
-        description,
-        category_id,
-        technology,
-        tags,
-        source_code,
-        preview_html,
-        preview_image_url,
-        responsive_desktop,
-        responsive_tablet,
-        responsive_mobile,
-        status,
-        created_at,
-        updated_at,
-        categories (
-          name
-        )
-      `)
+      .select(ADMIN_RESOURCE_SELECT_WITH_TECH)
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching admin resources:", error.message);
+    let rows: AdminResourceRow[] = [];
+
+    if (res.error && (res.error.message?.includes("tech_id") || res.error.code === "42703")) {
+      const fallbackRes = await supabase
+        .from("resources")
+        .select(ADMIN_RESOURCE_SELECT_FALLBACK)
+        .order("created_at", { ascending: false });
+
+      if (fallbackRes.error) {
+        console.error("Error fetching admin resources:", fallbackRes.error.message);
+        return [];
+      }
+      rows = (fallbackRes.data as unknown as AdminResourceRow[]) || [];
+    } else if (res.error) {
+      console.error("Error fetching admin resources:", res.error.message);
       return [];
+    } else {
+      rows = (res.data as unknown as AdminResourceRow[]) || [];
     }
 
-    const rows = (data as unknown as AdminResourceRow[]) || [];
     return rows.map((row) => ({
       id: row.id,
       title: row.title,
@@ -131,6 +175,7 @@ export async function getAllAdminResources(): Promise<Resource[]> {
       description: row.description || "",
       categoryId: row.category_id,
       category: (row.categories?.name || "Components") as CategoryType,
+      techId: row.tech_id || null,
       technology: row.technology,
       tags: row.tags || [],
       sourceCode: row.source_code,
@@ -154,37 +199,33 @@ export async function getAllAdminResources(): Promise<Resource[]> {
 export async function getAdminResourceById(id: string): Promise<Resource | null> {
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
+    const res = await supabase
       .from("resources")
-      .select(`
-        id,
-        title,
-        slug,
-        description,
-        category_id,
-        technology,
-        tags,
-        source_code,
-        preview_html,
-        preview_image_url,
-        responsive_desktop,
-        responsive_tablet,
-        responsive_mobile,
-        status,
-        created_at,
-        updated_at,
-        categories (
-          name
-        )
-      `)
+      .select(ADMIN_RESOURCE_SELECT_WITH_TECH)
       .eq("id", id)
       .maybeSingle();
 
-    if (error || !data) {
+    let row: AdminResourceRow | null = null;
+
+    if (res.error && (res.error.message?.includes("tech_id") || res.error.code === "42703")) {
+      const fallbackRes = await supabase
+        .from("resources")
+        .select(ADMIN_RESOURCE_SELECT_FALLBACK)
+        .eq("id", id)
+        .maybeSingle();
+
+      if (fallbackRes.error || !fallbackRes.data) {
+        return null;
+      }
+      row = fallbackRes.data as unknown as AdminResourceRow;
+    } else if (res.error || !res.data) {
       return null;
+    } else {
+      row = res.data as unknown as AdminResourceRow;
     }
 
-    const row = data as unknown as AdminResourceRow;
+    if (!row) return null;
+
     return {
       id: row.id,
       title: row.title,
@@ -192,6 +233,7 @@ export async function getAdminResourceById(id: string): Promise<Resource | null>
       description: row.description || "",
       categoryId: row.category_id,
       category: (row.categories?.name || "Components") as CategoryType,
+      techId: row.tech_id || null,
       technology: row.technology,
       tags: row.tags || [],
       sourceCode: row.source_code,
@@ -244,6 +286,56 @@ export async function getAllAdminCategories(): Promise<AdminCategoryWithCount[]>
   } catch (err) {
     console.error("Error in getAllAdminCategories:", err);
     return [];
+  }
+}
+
+export async function getAllAdminTechnologies(): Promise<AdminTechnologyWithCount[]> {
+  try {
+    const supabase = await createClient();
+
+    const [techRes, resourcesRes] = await Promise.all([
+      supabase.from("technologies").select("*").order("name", { ascending: true }),
+      supabase.from("resources").select("category_id, technology"),
+    ]);
+
+    if (techRes.error) {
+      // Fallback default list if table not yet created in Supabase
+      return [
+        { id: "1", name: "React", slug: "react", description: "React UI components", createdAt: new Date().toISOString(), resourceCount: 0 },
+        { id: "2", name: "Next.js", slug: "nextjs", description: "Next.js App Router", createdAt: new Date().toISOString(), resourceCount: 0 },
+        { id: "3", name: "Tailwind CSS", slug: "tailwind", description: "Tailwind utility styles", createdAt: new Date().toISOString(), resourceCount: 0 },
+        { id: "4", name: "TypeScript", slug: "typescript", description: "Type-safe code", createdAt: new Date().toISOString(), resourceCount: 0 },
+        { id: "5", name: "HTML & CSS", slug: "html", description: "Standard HTML5 & CSS3", createdAt: new Date().toISOString(), resourceCount: 0 },
+      ];
+    }
+
+    const resources = resourcesRes.data || [];
+
+    return (techRes.data || []).map((t) => {
+      const matchCount = resources.filter((r) =>
+        r.technology?.toLowerCase().includes(t.name.toLowerCase()) ||
+        r.technology?.toLowerCase().includes(t.slug.toLowerCase())
+      ).length;
+
+      return {
+        id: t.id,
+        name: t.name,
+        slug: t.slug,
+        icon: t.icon,
+        description: t.description,
+        createdAt: t.created_at,
+        resourceCount: matchCount,
+      };
+    });
+  } catch (err) {
+    console.error("Error in getAllAdminTechnologies:", err);
+    return [
+      { id: "1", name: "React", slug: "react", description: "React UI components", createdAt: new Date().toISOString(), resourceCount: 0 },
+      { id: "2", name: "Next.js", slug: "nextjs", description: "Next.js App Router", createdAt: new Date().toISOString(), resourceCount: 0 },
+      { id: "3", name: "Tailwind CSS", slug: "tailwind", description: "Tailwind utility styles", createdAt: new Date().toISOString(), resourceCount: 0 },
+      { id: "4", name: "TypeScript", slug: "typescript", description: "Type-safe code", createdAt: new Date().toISOString(), resourceCount: 0 },
+      { id: "5", name: "HTML & CSS", slug: "html", description: "Standard HTML5 & CSS3", createdAt: new Date().toISOString(), resourceCount: 0 },
+    ];
   }
 }
 

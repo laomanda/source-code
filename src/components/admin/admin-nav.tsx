@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Layers,
   FolderTree,
+  Cpu,
   Lightbulb,
   ExternalLink,
   LogOut,
@@ -31,6 +32,7 @@ export function AdminNav({ userEmail }: AdminNavProps) {
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { label: "Resources", href: "/admin/resources", icon: Layers },
     { label: "Categories", href: "/admin/categories", icon: FolderTree },
+    { label: "Technologies", href: "/admin/technologies", icon: Cpu },
     { label: "Suggestions", href: "/admin/suggestions", icon: Lightbulb },
   ];
 

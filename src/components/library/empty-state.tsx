@@ -16,23 +16,23 @@ export function EmptyState({ searchQuery, onReset }: EmptyStateProps) {
 
       <div className="space-y-1.5">
         <h3 className="font-heading font-bold text-lg text-[#272343]">
-          No matching resources
+          Tidak ada komponen yang cocok
         </h3>
         <p className="text-sm text-[#2D334A]/80 leading-relaxed">
           {searchQuery ? (
             <>
-              No results found for <span className="font-semibold text-[#272343]">&ldquo;{searchQuery}&rdquo;</span>.
+              Tidak ada hasil yang ditemukan untuk <span className="font-semibold text-[#272343]">&ldquo;{searchQuery}&rdquo;</span>.
             </>
           ) : (
-            "No resources match the selected category and technology filters."
+            "Tidak ada komponen yang cocok dengan filter kategori dan teknologi yang dipilih."
           )}
         </p>
       </div>
 
       <div className="pt-2">
-        <Button onClick={onReset} variant="outline" size="sm" className="gap-2">
+        <Button onClick={onReset} variant="outline" size="sm" className="gap-2 font-semibold">
           <RotateCcw className="h-3.5 w-3.5" />
-          <span>Reset Filters</span>
+          <span>Reset Filter</span>
         </Button>
       </div>
     </div>

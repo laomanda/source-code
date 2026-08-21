@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const SQRT_5000 = Math.sqrt(5000);
@@ -128,9 +127,6 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         src={testimonial.imgSrc}
         alt={`${testimonial.by.split(",")[0]}`}
         className="mb-4 h-12 w-12 sm:h-14 sm:w-14 rounded-lg bg-[#E3F6F5] object-cover object-top border border-[#BAE8E8]"
-        style={{
-          boxShadow: isCenter ? "3px 3px 0px #FFD803" : "3px 3px 0px #BAE8E8",
-        }}
       />
       <h3
         className={cn(

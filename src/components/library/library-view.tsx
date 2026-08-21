@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
-import { Resource, CategoryType } from "@/types";
+import { Resource, CategoryType, Technology } from "@/types";
 import { ResourceCard } from "@/components/library/resource-card";
 import { EmptyState } from "@/components/library/empty-state";
 import { Container } from "@/components/ui/container";
@@ -13,7 +13,6 @@ import { smartSearchResources } from "@/lib/search/smart-search";
 import {
   Search,
   X,
-  Layers,
   ArrowUpDown,
   Bookmark,
   Sparkles,
@@ -21,6 +20,7 @@ import {
 
 export interface LibraryViewProps {
   initialResources?: Resource[];
+  initialTechnologies?: Technology[];
 }
 
 const POPULAR_SEARCH_KEYWORDS = [
@@ -32,7 +32,21 @@ const POPULAR_SEARCH_KEYWORDS = [
   "Tailwind",
 ];
 
-export function LibraryView({ initialResources = [] }: LibraryViewProps) {
+const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
+  All: "Semua",
+  Components: "Komponen",
+  Blocks: "Blok",
+  Pages: "Halaman",
+  Templates: "Template",
+};
+
+const normalizeSlug = (s: string) =>
+  (s || "").toLowerCase().trim().replace(/^\/resource\//, "").replace(/^\//, "");
+
+export function LibraryView({
+  initialResources = [],
+  initialTechnologies = [],
+}: LibraryViewProps) {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("search") || "";
 
@@ -45,7 +59,7 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
   );
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
-  const { favorites, isLoaded } = useFavorites();
+  const { favoriteItems, favorites, isLoaded } = useFavorites();
 
   // Sync initial query from URL search params if present
   React.useEffect(() => {
@@ -72,10 +86,20 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Distinct technologies from dataset
+  // Distinct technologies from database or dataset
   const techOptions = React.useMemo(() => {
-    return ["All", "React", "Next.js", "Tailwind", "TypeScript", "HTML"];
-  }, []);
+    if (initialTechnologies && initialTechnologies.length > 0) {
+      return ["All", ...initialTechnologies.map((t) => t.name)];
+    }
+    const extracted = Array.from(
+      new Set(
+        initialResources.flatMap((r) =>
+          r.technology.split(/[·,\/]/).map((t) => t.trim())
+        )
+      )
+    ).filter(Boolean);
+    return ["All", ...(extracted.length > 0 ? extracted : ["React", "Next.js", "Tailwind", "TypeScript", "HTML"])];
+  }, [initialTechnologies, initialResources]);
 
   const categories: Array<"All" | CategoryType> = [
     "All",
@@ -98,9 +122,41 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
   const filteredResources = React.useMemo(() => {
     let baseList = initialResources;
 
-    // Favorites only filter
+    // Favorites only filter with robust slug matching & offline localStorage fallback
     if (showFavoritesOnly) {
-      baseList = baseList.filter((r) => favorites.includes(r.slug));
+      const matched = initialResources.filter((r) =>
+        favoriteItems.some(
+          (f) =>
+            normalizeSlug(f.slug) === normalizeSlug(r.slug) ||
+            normalizeSlug(f.slug) === normalizeSlug(r.id) ||
+            (f.title && r.title && f.title.toLowerCase().trim() === r.title.toLowerCase().trim())
+        )
+      );
+
+      const missing = favoriteItems
+        .filter(
+          (f) =>
+            !matched.some(
+              (m) =>
+                normalizeSlug(m.slug) === normalizeSlug(f.slug) ||
+                (f.title && m.title && m.title.toLowerCase().trim() === f.title.toLowerCase().trim())
+            )
+        )
+        .map((f) => ({
+          id: f.slug,
+          title: f.title || f.slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+          slug: f.slug,
+          description: "Komponen yang telah disimpan di favorit Anda.",
+          category: (f.category as CategoryType) || "Components",
+          technology: f.technology || "React · Tailwind",
+          tags: ["favorite", (f.category || "components").toLowerCase()],
+          sourceCode: "",
+          responsive: { desktop: true, tablet: true, mobile: true },
+          status: "published" as const,
+          createdAt: f.addedAt || new Date().toISOString(),
+        }));
+
+      baseList = [...matched, ...missing];
     }
 
     // Category filter
@@ -108,11 +164,20 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
       baseList = baseList.filter((r) => r.category === selectedCategory);
     }
 
-    // Technology filter
+    // Technology filter (supports both relational techId and substring text)
     if (selectedTechnology !== "All") {
-      baseList = baseList.filter((r) =>
-        r.technology.toLowerCase().includes(selectedTechnology.toLowerCase())
+      const selectedTechObj = initialTechnologies?.find(
+        (t) =>
+          t.name.toLowerCase() === selectedTechnology.toLowerCase() ||
+          t.slug.toLowerCase() === selectedTechnology.toLowerCase()
       );
+
+      baseList = baseList.filter((r) => {
+        if (selectedTechObj && r.techId && r.techId === selectedTechObj.id) {
+          return true;
+        }
+        return r.technology.toLowerCase().includes(selectedTechnology.toLowerCase());
+      });
     }
 
     // Smart Search Query Evaluation
@@ -149,8 +214,9 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
     });
   }, [
     initialResources,
+    initialTechnologies,
     showFavoritesOnly,
-    favorites,
+    favoriteItems,
     searchQuery,
     selectedCategory,
     selectedTechnology,
@@ -176,24 +242,17 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
       <Container size="xl" className="space-y-8">
         {/* Header Title Section */}
         <div className="space-y-3 max-w-3xl">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E3F6F5] border border-[#BAE8E8] text-xs font-semibold text-[#272343]">
-            <Layers className="h-3.5 w-3.5" />
-            <span>Developer Source-Code Catalog</span>
-          </div>
-          <h1 className="text-h1">Explore Source Code Library</h1>
+          <h1 className="text-h1">Jelajahi Pustaka Source Code</h1>
           <p className="text-body text-[#2D334A]/80">
-            Browse, search, and copy free ready-to-use components, blocks, and templates. Filter by technology, bookmark your favorites, and verify responsiveness.
+            Cari, coba langsung, dan salin komponen, blok, dan template siap pakai secara gratis. Filter berdasarkan teknologi, simpan ke favorit, dan uji responsivitasnya.
           </p>
           <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-[#2D334A]/70">
-            <span className="font-semibold text-[#272343] mr-1">Catalog Stats:</span>
+            <span className="font-semibold text-[#272343] mr-1">Statistik Katalog:</span>
             <span className="inline-flex items-center gap-1 bg-[#E3F6F5]/70 px-2.5 py-0.5 rounded-full border border-[#BAE8E8] font-mono text-[11px] text-[#272343]">
-              <strong>{initialResources.length}</strong> Components
+              <strong>{initialResources.length}</strong> Komponen
             </span>
             <span className="inline-flex items-center gap-1 bg-[#E3F6F5]/70 px-2.5 py-0.5 rounded-full border border-[#BAE8E8] font-mono text-[11px] text-[#272343]">
-              <strong>{Object.keys(categoryCounts).length - 1}</strong> Categories
-            </span>
-            <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-200 font-mono text-[11px]">
-              100% Free Code
+              <strong>{Object.keys(categoryCounts).length - 1}</strong> Kategori
             </span>
           </div>
         </div>
@@ -214,12 +273,12 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
                     setSortBy("relevance");
                   }
                 }}
-                placeholder="Smart Search (e.g. 'button react', 'hero banner', 'navbar mobile')..."
-                className="pl-10 pr-20 h-11 bg-white border-[#BAE8E8] shadow-soft-sm text-sm"
-                aria-label="Smart search resources"
+                placeholder="Pencarian Pintar (contoh: 'button react', 'hero banner', 'navbar mobile')..."
+                className="pl-10 pr-10 h-11 bg-white border-[#BAE8E8] shadow-soft-sm text-sm"
+                aria-label="Cari komponen sumber daya"
               />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                {searchQuery ? (
+              {searchQuery && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
                   <button
                     type="button"
                     onClick={() => {
@@ -227,33 +286,19 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
                       searchInputRef.current?.focus();
                     }}
                     className="p-1 text-[#2D334A]/60 hover:text-[#272343] rounded"
-                    aria-label="Clear search query"
+                    aria-label="Hapus kata kunci pencarian"
                   >
                     <X className="h-4 w-4" />
                   </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (typeof window !== "undefined") {
-                        window.dispatchEvent(new Event("jakdev:open-search"));
-                      }
-                    }}
-                    className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#2D334A]/70 bg-[#E3F6F5] hover:bg-[#FFD803] hover:text-[#272343] border border-[#BAE8E8] rounded shadow-soft-xs transition-colors"
-                    title="Open Spotlight Search (⌘K / Ctrl+K / Press K)"
-                    aria-label="Open Spotlight Search"
-                  >
-                    ⌘K
-                  </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Sort Selector */}
             <div className="md:col-span-4 flex items-center justify-end gap-2">
               <span className="text-xs text-[#2D334A]/70 flex items-center gap-1 whitespace-nowrap">
                 <ArrowUpDown className="h-3.5 w-3.5" />
-                <span>Sort:</span>
+                <span>Urutkan:</span>
               </span>
               <select
                 value={sortBy}
@@ -263,12 +308,12 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
                   )
                 }
                 className="h-11 rounded-md border border-[#BAE8E8] bg-white px-3 py-2 text-xs font-medium text-[#272343] shadow-soft-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343]"
-                aria-label="Sort resources"
+                aria-label="Urutkan komponen"
               >
-                {searchQuery && <option value="relevance">Most Relevant</option>}
-                <option value="newest">Newest First</option>
-                <option value="alpha">Alphabetical (A–Z)</option>
-                <option value="oldest">Oldest First</option>
+                {searchQuery && <option value="relevance">Paling Relevan</option>}
+                <option value="newest">Terbaru</option>
+                <option value="alpha">Abjad (A–Z)</option>
+                <option value="oldest">Terlama</option>
               </select>
             </div>
           </div>
@@ -277,7 +322,7 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
           <div className="flex flex-wrap items-center gap-1.5 text-xs text-[#2D334A]/70">
             <span className="inline-flex items-center gap-1 font-semibold text-[#272343] mr-1 text-[11px]">
               <Sparkles className="h-3 w-3 text-[#0D6E6E]" />
-              Popular:
+              Populer:
             </span>
             {POPULAR_SEARCH_KEYWORDS.map((kw) => (
               <button
@@ -305,13 +350,15 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
           {/* Category Tabs + Favorites Tab */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-semibold text-[#272343] mr-2 flex items-center gap-1">
-              <span>Category:</span>
+              <span>Kategori:</span>
             </span>
 
             {/* Standard Category Tabs */}
             {categories.map((category) => {
               const count = categoryCounts[category] || 0;
               const isSelected = !showFavoritesOnly && selectedCategory === category;
+              const label = CATEGORY_DISPLAY_NAMES[category] || category;
+
               return (
                 <button
                   key={category}
@@ -326,7 +373,7 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
                       : "bg-[#E3F6F5]/60 text-[#2D334A] border border-[#BAE8E8]/60 hover:bg-[#E3F6F5] hover:text-[#272343]"
                   }`}
                 >
-                  <span>{category}</span>
+                  <span>{label}</span>
                   <span
                     className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
                       isSelected
@@ -343,13 +390,19 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
             {/* Favorites Tab Button */}
             <button
               type="button"
-              onClick={() => setShowFavoritesOnly((prev) => !prev)}
+              onClick={() => {
+                setShowFavoritesOnly((prev) => {
+                  const next = !prev;
+                  if (next) setSelectedCategory("All");
+                  return next;
+                });
+              }}
               className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] ${
                 showFavoritesOnly
                   ? "bg-[#FFD803] text-[#272343] border-[#F2CD00] font-bold shadow-soft-sm"
                   : "bg-white text-[#2D334A] border-[#BAE8E8] hover:bg-[#E3F6F5]/60"
               }`}
-              title="Show only bookmarked favorites"
+              title="Tampilkan hanya komponen yang disimpan"
             >
               <Bookmark
                 className={`h-3.5 w-3.5 ${
@@ -358,7 +411,7 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
                     : "text-[#2D334A]/70"
                 }`}
               />
-              <span>Favorites</span>
+              <span>Favorit</span>
               <span
                 className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
                   showFavoritesOnly
@@ -374,10 +427,12 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
           {/* Technology Filter Pills */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <span className="text-xs font-semibold text-[#272343] mr-2 flex items-center gap-1">
-              <span>Tech:</span>
+              <span>Teknologi:</span>
             </span>
             {techOptions.map((tech) => {
               const isSelected = selectedTechnology === tech;
+              const label = tech === "All" ? "Semua" : tech;
+
               return (
                 <button
                   key={tech}
@@ -389,7 +444,7 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
                       : "bg-white text-[#2D334A] border border-[#BAE8E8] hover:bg-[#E3F6F5]/50"
                   }`}
                 >
-                  {tech}
+                  {label}
                 </button>
               );
             })}
@@ -402,7 +457,7 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
             {showFavoritesOnly && (
               <span className="inline-flex items-center gap-1 font-semibold text-[#0D6E6E] bg-[#E3F6F5] px-2 py-0.5 rounded">
                 <Bookmark className="h-3 w-3 fill-[#0D6E6E]" />
-                Bookmarked
+                Disimpan
               </span>
             )}
             {searchQuery && (
@@ -410,12 +465,6 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
                 &ldquo;{searchQuery}&rdquo;
               </span>
             )}
-            <span className="font-semibold text-[#272343]">
-              {filteredResources.length}
-            </span>
-            <span>
-              {filteredResources.length === 1 ? "resource found" : "resources found"}
-            </span>
           </div>
 
           {hasActiveFilters && (
@@ -427,7 +476,7 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
               className="text-xs text-[#2D334A]/70 hover:text-[#272343] gap-1 h-8"
             >
               <X className="h-3.5 w-3.5" />
-              <span>Clear all filters</span>
+              <span>Hapus semua filter</span>
             </Button>
           )}
         </div>
@@ -436,30 +485,33 @@ export function LibraryView({ initialResources = [] }: LibraryViewProps) {
         {filteredResources.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
             {filteredResources.map((resource) => (
-              <ResourceCard key={resource.id} resource={resource} />
+              <ResourceCard key={resource.id || resource.slug} resource={resource} />
             ))}
           </div>
-        ) : showFavoritesOnly ? (
+        ) : showFavoritesOnly && (!isLoaded || favorites.length === 0) ? (
           <div className="text-center py-16 px-4 rounded-xl border border-dashed border-[#BAE8E8] bg-white space-y-4 max-w-md mx-auto shadow-soft-sm">
             <div className="h-12 w-12 rounded-full bg-[#E3F6F5] border border-[#BAE8E8] flex items-center justify-center mx-auto text-[#272343]">
               <Bookmark className="h-6 w-6" />
             </div>
             <div className="space-y-1">
               <h3 className="text-base font-heading font-bold text-[#272343]">
-                No Favorites Saved Yet
+                Belum Ada Favorit yang Disimpan
               </h3>
               <p className="text-xs text-[#2D334A]/80 leading-relaxed">
-                Click the bookmark icon on any component card to save it here for instant access without signing in.
+                Klik ikon bookmark pada kartu komponen apa pun untuk menyimpannya di sini agar mudah diakses kembali tanpa perlu login.
               </p>
             </div>
             <Button
               type="button"
               variant="primary"
               size="sm"
-              onClick={() => setShowFavoritesOnly(false)}
+              onClick={() => {
+                setShowFavoritesOnly(false);
+                setSelectedCategory("All");
+              }}
               className="font-semibold"
             >
-              Explore All Components
+              Jelajahi Semua Komponen
             </Button>
           </div>
         ) : (

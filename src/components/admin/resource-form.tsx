@@ -13,7 +13,7 @@ import {
   createResourceAction,
   updateResourceAction,
 } from "@/lib/actions/resources";
-import { Resource, Category } from "@/types";
+import { Resource, Category, Technology } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -38,11 +38,13 @@ import { toast } from "sonner";
 export interface ResourceFormProps {
   initialResource?: Resource | null;
   categories: Category[];
+  technologies?: Technology[];
 }
 
 export function ResourceForm({
   initialResource,
   categories,
+  technologies = [],
 }: ResourceFormProps) {
   const router = useRouter();
   const isEditing = !!initialResource;
@@ -50,11 +52,16 @@ export function ResourceForm({
   const [formError, setFormError] = React.useState<string | null>(null);
   const [activeTab, setActiveTab] = React.useState<"split" | "editor" | "preview">("split");
 
-  // Default values
+  // Default category and technology
   const defaultCategory =
     categories.find((c) => c.id === initialResource?.categoryId) ||
     categories.find((c) => c.name === initialResource?.category) ||
     categories[0];
+
+  const defaultTech =
+    technologies.find((t) => t.id === initialResource?.techId) ||
+    technologies.find((t) => t.name.toLowerCase() === initialResource?.technology?.toLowerCase()) ||
+    technologies[0];
 
   const {
     register,
@@ -70,7 +77,8 @@ export function ResourceForm({
       slug: initialResource?.slug || "",
       description: initialResource?.description || "",
       category_id: initialResource?.categoryId || defaultCategory?.id || "",
-      technology: initialResource?.technology || "React · Tailwind",
+      tech_id: initialResource?.techId || defaultTech?.id || "",
+      technology: initialResource?.technology || defaultTech?.name || "React · Tailwind",
       tags: initialResource?.tags?.join(", ") || "ui, component, react",
       source_code:
         initialResource?.sourceCode ||
@@ -284,12 +292,51 @@ export function ResourceForm({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-semibold text-[#272343]">Technology Stack *</label>
-                  <Input
-                    placeholder="e.g. React · Tailwind"
-                    {...register("technology")}
-                    className="h-9 text-xs font-mono"
-                  />
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-[#272343]">Technology Stack *</label>
+                    <Link
+                      href="/admin/technologies"
+                      target="_blank"
+                      className="text-[10px] text-[#0D6E6E] hover:underline font-mono"
+                    >
+                      + Kelola Tech
+                    </Link>
+                  </div>
+                  {technologies.length > 0 ? (
+                    <div className="space-y-1.5">
+                      <select
+                        value={watch("tech_id") || ""}
+                        onChange={(e) => {
+                          const selectedId = e.target.value;
+                          const t = technologies.find((item) => item.id === selectedId);
+                          setValue("tech_id", selectedId, { shouldValidate: true });
+                          if (t) {
+                            setValue("technology", t.name, { shouldValidate: true });
+                          }
+                        }}
+                        className="w-full h-9 rounded-md border border-[#BAE8E8] bg-white px-2.5 text-xs text-[#272343] shadow-soft-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343]"
+                      >
+                        <option value="">-- Pilih Teknologi --</option>
+                        {technologies.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.name}
+                          </option>
+                        ))}
+                      </select>
+                      <Input
+                        placeholder="e.g. React · Tailwind"
+                        {...register("technology")}
+                        className="h-8 text-xs font-mono bg-[#FBFDFD]"
+                        title="Label nama teknologi"
+                      />
+                    </div>
+                  ) : (
+                    <Input
+                      placeholder="e.g. React · Tailwind"
+                      {...register("technology")}
+                      className="h-9 text-xs font-mono"
+                    />
+                  )}
                   {errors.technology && (
                     <p className="text-[11px] text-rose-600">{errors.technology.message}</p>
                   )}

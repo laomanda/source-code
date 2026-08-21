@@ -33,6 +33,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      technologies: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          icon: string | null;
+          description: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          icon?: string | null;
+          description?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          icon?: string | null;
+          description?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       resources: {
         Row: {
           id: string;
@@ -40,6 +67,7 @@ export interface Database {
           slug: string;
           description: string | null;
           category_id: string | null;
+          tech_id: string | null;
           technology: string;
           tags: string[];
           source_code: string;
@@ -58,6 +86,7 @@ export interface Database {
           slug: string;
           description?: string | null;
           category_id?: string | null;
+          tech_id?: string | null;
           technology: string;
           tags?: string[];
           source_code: string;
@@ -76,6 +105,7 @@ export interface Database {
           slug?: string;
           description?: string | null;
           category_id?: string | null;
+          tech_id?: string | null;
           technology?: string;
           tags?: string[];
           source_code?: string;
@@ -94,6 +124,13 @@ export interface Database {
             columns: ["category_id"];
             isOneToOne: false;
             referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "resources_tech_id_fkey";
+            columns: ["tech_id"];
+            isOneToOne: false;
+            referencedRelation: "technologies";
             referencedColumns: ["id"];
           }
         ];

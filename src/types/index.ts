@@ -10,6 +10,15 @@ export interface Category {
   createdAt?: string;
 }
 
+export interface Technology {
+  id: string;
+  name: string;
+  slug: string;
+  icon?: string | null;
+  description?: string | null;
+  createdAt?: string;
+}
+
 export interface Resource {
   id: string;
   title: string;
@@ -17,6 +26,7 @@ export interface Resource {
   description: string;
   categoryId?: string | null;
   category: CategoryType;
+  techId?: string | null;
   technology: string;
   tags: string[];
   sourceCode: string;
@@ -48,4 +58,3 @@ export interface DeveloperSuggestion {
   description: string;
   createdAt: string;
 }
-

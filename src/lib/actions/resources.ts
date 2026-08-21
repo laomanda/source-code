@@ -40,6 +40,7 @@ export async function createResourceAction(
         slug: data.slug.trim(),
         description: data.description.trim(),
         category_id: data.category_id,
+        tech_id: data.tech_id || null,
         technology: data.technology.trim(),
         tags: tagsArray,
         source_code: data.source_code,
@@ -61,6 +62,7 @@ export async function createResourceAction(
     }
 
     revalidatePath("/admin/resources");
+    revalidatePath("/admin/technologies");
     revalidatePath("/admin");
     revalidatePath("/library");
     revalidatePath(`/resource/${data.slug}`);
@@ -105,6 +107,7 @@ export async function updateResourceAction(
         slug: data.slug.trim(),
         description: data.description.trim(),
         category_id: data.category_id,
+        tech_id: data.tech_id || null,
         technology: data.technology.trim(),
         tags: tagsArray,
         source_code: data.source_code,

@@ -79,10 +79,10 @@ export function ResourceCard({ resource }: ResourceCardProps) {
 
       {/* Footer & Action */}
       <CardFooter className="pt-3 border-t border-[#BAE8E8]/40 justify-between items-center">
-        <span className="text-[11px] font-mono text-[#0D6E6E] font-medium">Free Code</span>
+        <span className="text-[11px] font-mono text-[#0D6E6E] font-medium">Kode Gratis</span>
         <Button asChild size="sm" variant="primary">
           <Link href={`/resource/${resource.slug}`} className="flex items-center gap-1.5 font-semibold">
-            <span>View Resource</span>
+            <span>Lihat Kode</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>

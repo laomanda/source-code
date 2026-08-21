@@ -7,6 +7,7 @@ interface ResourceRowWithCategory {
   slug: string;
   description: string | null;
   category_id: string | null;
+  tech_id?: string | null;
   technology: string;
   tags: string[];
   source_code: string;
@@ -23,6 +24,51 @@ interface ResourceRowWithCategory {
   } | null;
 }
 
+const BASE_SELECT_WITH_TECH = `
+  id,
+  title,
+  slug,
+  description,
+  category_id,
+  tech_id,
+  technology,
+  tags,
+  source_code,
+  preview_html,
+  preview_image_url,
+  responsive_desktop,
+  responsive_tablet,
+  responsive_mobile,
+  status,
+  created_at,
+  updated_at,
+  categories (
+    name
+  )
+`;
+
+const BASE_SELECT_FALLBACK = `
+  id,
+  title,
+  slug,
+  description,
+  category_id,
+  technology,
+  tags,
+  source_code,
+  preview_html,
+  preview_image_url,
+  responsive_desktop,
+  responsive_tablet,
+  responsive_mobile,
+  status,
+  created_at,
+  updated_at,
+  categories (
+    name
+  )
+`;
+
 function mapRowToResource(row: ResourceRowWithCategory): Resource {
   const categoryName = (row.categories?.name || "Components") as CategoryType;
 
@@ -33,6 +79,7 @@ function mapRowToResource(row: ResourceRowWithCategory): Resource {
     description: row.description || "",
     categoryId: row.category_id,
     category: categoryName,
+    techId: row.tech_id || null,
     technology: row.technology,
     tags: row.tags || [],
     sourceCode: row.source_code,
@@ -52,38 +99,34 @@ function mapRowToResource(row: ResourceRowWithCategory): Resource {
 export async function getPublishedResources(): Promise<Resource[]> {
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
+    const res = await supabase
       .from("resources")
-      .select(`
-        id,
-        title,
-        slug,
-        description,
-        category_id,
-        technology,
-        tags,
-        source_code,
-        preview_html,
-        preview_image_url,
-        responsive_desktop,
-        responsive_tablet,
-        responsive_mobile,
-        status,
-        created_at,
-        updated_at,
-        categories (
-          name
-        )
-      `)
+      .select(BASE_SELECT_WITH_TECH)
       .eq("status", "published")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching published resources from Supabase:", error.message);
+    let rows: ResourceRowWithCategory[] = [];
+
+    if (res.error && (res.error.message?.includes("tech_id") || res.error.code === "42703")) {
+      const fallbackRes = await supabase
+        .from("resources")
+        .select(BASE_SELECT_FALLBACK)
+        .eq("status", "published")
+        .order("created_at", { ascending: false });
+
+      if (fallbackRes.error) {
+        console.error("Error fetching published resources from Supabase:", fallbackRes.error.message);
+        return [];
+      }
+      rows = (fallbackRes.data as unknown as ResourceRowWithCategory[]) || [];
+    } else if (res.error) {
+      console.error("Error fetching published resources from Supabase:", res.error.message);
       return [];
+    } else {
+      rows = (res.data as unknown as ResourceRowWithCategory[]) || [];
     }
 
-    return ((data as unknown as ResourceRowWithCategory[]) || []).map(mapRowToResource);
+    return rows.map(mapRowToResource);
   } catch (err) {
     console.error("Unexpected error in getPublishedResources:", err);
     return [];
@@ -97,7 +140,6 @@ export async function getResourceBySlug(
   try {
     const supabase = await createClient();
 
-    // If allowDraft is explicitly requested or check if user is admin
     let isUserAdmin = allowDraft;
     if (!isUserAdmin) {
       const {
@@ -108,45 +150,41 @@ export async function getResourceBySlug(
 
     let query = supabase
       .from("resources")
-      .select(`
-        id,
-        title,
-        slug,
-        description,
-        category_id,
-        technology,
-        tags,
-        source_code,
-        preview_html,
-        preview_image_url,
-        responsive_desktop,
-        responsive_tablet,
-        responsive_mobile,
-        status,
-        created_at,
-        updated_at,
-        categories (
-          name
-        )
-      `)
+      .select(BASE_SELECT_WITH_TECH)
       .eq("slug", slug);
 
     if (!isUserAdmin) {
       query = query.eq("status", "published");
     }
 
-    const { data, error } = await query.maybeSingle();
+    const res = await query.maybeSingle();
+    let row: ResourceRowWithCategory | null = null;
 
-    if (error) {
-      console.error(`Error fetching resource "${slug}" from Supabase:`, error.message);
+    if (res.error && (res.error.message?.includes("tech_id") || res.error.code === "42703")) {
+      let fallbackQuery = supabase
+        .from("resources")
+        .select(BASE_SELECT_FALLBACK)
+        .eq("slug", slug);
+
+      if (!isUserAdmin) {
+        fallbackQuery = fallbackQuery.eq("status", "published");
+      }
+      const fallbackRes = await fallbackQuery.maybeSingle();
+      if (fallbackRes.error || !fallbackRes.data) {
+        return null;
+      }
+      row = fallbackRes.data as unknown as ResourceRowWithCategory;
+    } else if (res.error || !res.data) {
+      return null;
+    } else {
+      row = res.data as unknown as ResourceRowWithCategory;
+    }
+
+    if (!row) {
       return null;
     }
 
-    if (!data) {
-      return null;
-    }
-
-    return mapRowToResource(data as unknown as ResourceRowWithCategory);
+    return mapRowToResource(row);
   } catch (err) {
     console.error(`Unexpected error in getResourceBySlug for "${slug}":`, err);
     return null;

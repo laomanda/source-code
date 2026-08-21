@@ -15,8 +15,8 @@ const CONSTANTS = {
 const STYLES = {
   trigger: {
     container:
-      "rounded-full flex items-center justify-center bg-[#272343] text-[#FFD803] hover:bg-[#1E1B35] cursor-pointer outline-none ring-0 transition-colors duration-150 z-50 shadow-soft-xl border-2 border-[#BAE8E8]",
-    active: "bg-[#272343] text-[#FFD803] border-[#FFD803] shadow-soft-2xl",
+      "rounded-full flex items-center justify-center bg-white text-[#272343] hover:bg-[#E3F6F5]/80 hover:border-[#272343] cursor-pointer outline-none ring-0 transition-colors duration-150 z-50 shadow-soft-xl border-2 border-[#BAE8E8]",
+    active: "bg-white text-[#272343] border-[#FFD803] shadow-soft-2xl",
   },
   item: {
     container:
@@ -77,8 +77,8 @@ export interface CircleMenuProps {
 
 export function CircleMenu({
   items,
-  openIcon = <Menu size={20} className="text-[#FFD803]" />,
-  closeIcon = <X size={20} className="text-[#FFD803]" />,
+  openIcon = <Menu size={20} className="text-[#272343]" />,
+  closeIcon = <X size={20} className="text-[#272343]" />,
   mode = "semi-circle-left",
   className,
 }: CircleMenuProps) {

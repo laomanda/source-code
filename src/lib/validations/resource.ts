@@ -8,6 +8,7 @@ export const resourceFormSchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens."),
   description: z.string().min(5, "Description must be at least 5 characters."),
   category_id: z.string().uuid("Please select a valid category."),
+  tech_id: z.string().uuid().optional().nullable().or(z.literal("")),
   technology: z.string().min(1, "Technology stack is required (e.g. React · Tailwind)."),
   tags: z.string().min(1, "At least one tag is required (comma-separated)."),
   source_code: z.string().min(5, "Source code cannot be empty."),
