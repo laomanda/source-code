@@ -77,10 +77,10 @@ export function Navbar() {
       {/* Sticky Top Brand Bar (Logo + Search, sticks on scroll with glassmorphism) */}
       <header
         className={cn(
-          "sticky top-0 w-full z-40 transition-all duration-200",
+          "sticky top-0 w-full z-40 h-16 sm:h-20 flex items-center transition-[background-color,border-color,box-shadow,backdrop-filter] duration-200",
           isScrolled
-            ? "py-3 bg-white/85 backdrop-blur-md border-b border-[#BAE8E8]/70 shadow-soft-xs"
-            : "py-4 sm:py-6 bg-transparent"
+            ? "bg-white/90 backdrop-blur-md border-b border-[#BAE8E8]/70 shadow-soft-xs"
+            : "bg-transparent border-b border-transparent"
         )}
       >
         <Container size="xl" className="flex items-center justify-between">

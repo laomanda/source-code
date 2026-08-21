@@ -16,12 +16,15 @@ import {
   ArrowUpDown,
   Bookmark,
   Sparkles,
+  ChevronDown,
 } from "lucide-react";
 
 export interface LibraryViewProps {
   initialResources?: Resource[];
   initialTechnologies?: Technology[];
 }
+
+const PAGE_SIZE = 12;
 
 const POPULAR_SEARCH_KEYWORDS = [
   "Button",
@@ -41,7 +44,11 @@ const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
 };
 
 const normalizeSlug = (s: string) =>
-  (s || "").toLowerCase().trim().replace(/^\/resource\//, "").replace(/^\//, "");
+  (s || "")
+    .toLowerCase()
+    .trim()
+    .replace(/^\/resource\//, "")
+    .replace(/^\//, "");
 
 export function LibraryView({
   initialResources = [],
@@ -51,12 +58,15 @@ export function LibraryView({
   const initialQuery = searchParams.get("search") || "";
 
   const [searchQuery, setSearchQuery] = React.useState(initialQuery);
-  const [selectedCategory, setSelectedCategory] = React.useState<"All" | CategoryType>("All");
-  const [selectedTechnology, setSelectedTechnology] = React.useState<string>("All");
+  const [selectedCategory, setSelectedCategory] = React.useState<
+    "All" | CategoryType
+  >("All");
+  const [selectedTechnology, setSelectedTechnology] =
+    React.useState<string>("All");
   const [showFavoritesOnly, setShowFavoritesOnly] = React.useState(false);
-  const [sortBy, setSortBy] = React.useState<"newest" | "relevance" | "alpha" | "oldest">(
-    initialQuery ? "relevance" : "newest"
-  );
+  const [sortBy, setSortBy] = React.useState<
+    "newest" | "relevance" | "alpha" | "oldest"
+  >(initialQuery ? "relevance" : "newest");
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   const { favoriteItems, favorites, isLoaded } = useFavorites();
@@ -94,11 +104,16 @@ export function LibraryView({
     const extracted = Array.from(
       new Set(
         initialResources.flatMap((r) =>
-          r.technology.split(/[·,\/]/).map((t) => t.trim())
-        )
-      )
+          r.technology.split(/[·,\/]/).map((t) => t.trim()),
+        ),
+      ),
     ).filter(Boolean);
-    return ["All", ...(extracted.length > 0 ? extracted : ["React", "Next.js", "Tailwind", "TypeScript", "HTML"])];
+    return [
+      "All",
+      ...(extracted.length > 0
+        ? extracted
+        : ["React", "Next.js", "Tailwind", "TypeScript", "HTML"]),
+    ];
   }, [initialTechnologies, initialResources]);
 
   const categories: Array<"All" | CategoryType> = [
@@ -129,8 +144,10 @@ export function LibraryView({
           (f) =>
             normalizeSlug(f.slug) === normalizeSlug(r.slug) ||
             normalizeSlug(f.slug) === normalizeSlug(r.id) ||
-            (f.title && r.title && f.title.toLowerCase().trim() === r.title.toLowerCase().trim())
-        )
+            (f.title &&
+              r.title &&
+              f.title.toLowerCase().trim() === r.title.toLowerCase().trim()),
+        ),
       );
 
       const missing = favoriteItems
@@ -139,12 +156,17 @@ export function LibraryView({
             !matched.some(
               (m) =>
                 normalizeSlug(m.slug) === normalizeSlug(f.slug) ||
-                (f.title && m.title && m.title.toLowerCase().trim() === f.title.toLowerCase().trim())
-            )
+                (f.title &&
+                  m.title &&
+                  m.title.toLowerCase().trim() ===
+                    f.title.toLowerCase().trim()),
+            ),
         )
         .map((f) => ({
           id: f.slug,
-          title: f.title || f.slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+          title:
+            f.title ||
+            f.slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
           slug: f.slug,
           description: "Komponen yang telah disimpan di favorit Anda.",
           category: (f.category as CategoryType) || "Components",
@@ -169,14 +191,16 @@ export function LibraryView({
       const selectedTechObj = initialTechnologies?.find(
         (t) =>
           t.name.toLowerCase() === selectedTechnology.toLowerCase() ||
-          t.slug.toLowerCase() === selectedTechnology.toLowerCase()
+          t.slug.toLowerCase() === selectedTechnology.toLowerCase(),
       );
 
       baseList = baseList.filter((r) => {
         if (selectedTechObj && r.techId && r.techId === selectedTechObj.id) {
           return true;
         }
-        return r.technology.toLowerCase().includes(selectedTechnology.toLowerCase());
+        return r.technology
+          .toLowerCase()
+          .includes(selectedTechnology.toLowerCase());
       });
     }
 
@@ -195,9 +219,13 @@ export function LibraryView({
           return a.title.localeCompare(b.title);
         }
         if (sortBy === "oldest") {
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
         }
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
       });
     }
 
@@ -207,7 +235,9 @@ export function LibraryView({
         return a.title.localeCompare(b.title);
       }
       if (sortBy === "oldest") {
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        return (
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
       }
       // default: newest
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -223,12 +253,36 @@ export function LibraryView({
     sortBy,
   ]);
 
+  const [visibleCount, setVisibleCount] = React.useState(PAGE_SIZE);
+
+  // Reset visibleCount back to 12 whenever any search or filter criteria change
+  React.useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [
+    searchQuery,
+    selectedCategory,
+    selectedTechnology,
+    showFavoritesOnly,
+    sortBy,
+  ]);
+
+  const displayedResources = React.useMemo(() => {
+    return filteredResources.slice(0, visibleCount);
+  }, [filteredResources, visibleCount]);
+
+  const hasMore = visibleCount < filteredResources.length;
+
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => prev + PAGE_SIZE);
+  };
+
   const handleResetFilters = () => {
     setSearchQuery("");
     setSelectedCategory("All");
     setSelectedTechnology("All");
     setShowFavoritesOnly(false);
     setSortBy("newest");
+    setVisibleCount(PAGE_SIZE);
   };
 
   const hasActiveFilters =
@@ -244,10 +298,14 @@ export function LibraryView({
         <div className="space-y-3 max-w-3xl">
           <h1 className="text-h1">Jelajahi Pustaka Source Code</h1>
           <p className="text-body text-[#2D334A]/80">
-            Cari, coba langsung, dan salin komponen, blok, dan template siap pakai secara gratis. Filter berdasarkan teknologi, simpan ke favorit, dan uji responsivitasnya.
+            Cari, coba langsung, dan salin komponen, blok, dan template siap
+            pakai secara gratis. Filter berdasarkan teknologi, simpan ke
+            favorit, dan uji responsivitasnya.
           </p>
           <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-[#2D334A]/70">
-            <span className="font-semibold text-[#272343] mr-1">Statistik Katalog:</span>
+            <span className="font-semibold text-[#272343] mr-1">
+              Statistik Katalog:
+            </span>
             <span className="inline-flex items-center gap-1 bg-[#E3F6F5]/70 px-2.5 py-0.5 rounded-full border border-[#BAE8E8] font-mono text-[11px] text-[#272343]">
               <strong>{initialResources.length}</strong> Komponen
             </span>
@@ -304,13 +362,19 @@ export function LibraryView({
                 value={sortBy}
                 onChange={(e) =>
                   setSortBy(
-                    e.target.value as "newest" | "relevance" | "alpha" | "oldest"
+                    e.target.value as
+                      | "newest"
+                      | "relevance"
+                      | "alpha"
+                      | "oldest",
                   )
                 }
                 className="h-11 rounded-md border border-[#BAE8E8] bg-white px-3 py-2 text-xs font-medium text-[#272343] shadow-soft-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343]"
                 aria-label="Urutkan komponen"
               >
-                {searchQuery && <option value="relevance">Paling Relevan</option>}
+                {searchQuery && (
+                  <option value="relevance">Paling Relevan</option>
+                )}
                 <option value="newest">Terbaru</option>
                 <option value="alpha">Abjad (A–Z)</option>
                 <option value="oldest">Terlama</option>
@@ -356,7 +420,8 @@ export function LibraryView({
             {/* Standard Category Tabs */}
             {categories.map((category) => {
               const count = categoryCounts[category] || 0;
-              const isSelected = !showFavoritesOnly && selectedCategory === category;
+              const isSelected =
+                !showFavoritesOnly && selectedCategory === category;
               const label = CATEGORY_DISPLAY_NAMES[category] || category;
 
               return (
@@ -483,10 +548,41 @@ export function LibraryView({
 
         {/* Resource Grid or Empty State */}
         {filteredResources.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
-            {filteredResources.map((resource) => (
-              <ResourceCard key={resource.id || resource.slug} resource={resource} />
-            ))}
+          <div className="space-y-8 pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayedResources.map((resource) => (
+                <ResourceCard
+                  key={resource.id || resource.slug}
+                  resource={resource}
+                />
+              ))}
+            </div>
+
+            {/* Load More Button (12 items per batch) */}
+            {hasMore ? (
+              <div className="flex flex-col items-center justify-center pt-6 pb-4 space-y-2.5">
+                <Button
+                  type="button"
+                  onClick={handleLoadMore}
+                  variant="primary"
+                  size="default"
+                  className="gap-2 px-8 py-2.5 font-bold shadow-soft-sm hover:shadow-soft hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                >
+                  <span>Lihat Lebih Banyak</span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+                <p className="text-xs text-[#2D334A]/70 font-mono">
+                  Menampilkan {displayedResources.length} dari{" "}
+                  {filteredResources.length} komponen (+12 per klik)
+                </p>
+              </div>
+            ) : filteredResources.length > PAGE_SIZE ? (
+              <div className="text-center py-6 border-t border-[#BAE8E8]/50">
+                <p className="text-xs text-[#2D334A]/60 font-medium font-mono">
+                  Semua {filteredResources.length} komponen telah ditampilkan.
+                </p>
+              </div>
+            ) : null}
           </div>
         ) : showFavoritesOnly && (!isLoaded || favorites.length === 0) ? (
           <div className="text-center py-16 px-4 rounded-xl border border-dashed border-[#BAE8E8] bg-white space-y-4 max-w-md mx-auto shadow-soft-sm">
@@ -498,7 +594,9 @@ export function LibraryView({
                 Belum Ada Favorit yang Disimpan
               </h3>
               <p className="text-xs text-[#2D334A]/80 leading-relaxed">
-                Klik ikon bookmark pada kartu komponen apa pun untuk menyimpannya di sini agar mudah diakses kembali tanpa perlu login.
+                Klik ikon bookmark pada kartu komponen apa pun untuk
+                menyimpannya di sini agar mudah diakses kembali tanpa perlu
+                login.
               </p>
             </div>
             <Button
