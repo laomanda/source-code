@@ -36,11 +36,19 @@ export async function submitSuggestionAction(
     const { error } = await supabase.from("developer_suggestions").insert({
       type: validData.type as SuggestionType,
       description: validData.description,
+      is_read: false,
     });
 
     if (error) {
       console.error("Supabase insert error on developer_suggestions:", error.message);
-      return { error: "Gagal mengirimkan saran. Silakan coba lagi." };
+      // Fallback if is_read column is missing
+      const fallback = await supabase.from("developer_suggestions").insert({
+        type: validData.type as SuggestionType,
+        description: validData.description,
+      });
+      if (fallback.error) {
+        return { error: "Gagal mengirimkan saran. Silakan coba lagi." };
+      }
     }
 
     revalidatePath("/admin/suggestions");
@@ -49,6 +57,124 @@ export async function submitSuggestionAction(
   } catch (err: unknown) {
     console.error("Unexpected error in submitSuggestionAction:", err);
     return { error: "Terjadi kesalahan sistem. Silakan coba beberapa saat lagi." };
+  }
+}
+
+/**
+ * Mark a single suggestion as read
+ */
+export async function markSuggestionAsReadAction(
+  id: string
+): Promise<SuggestionActionState> {
+  if (!id || typeof id !== "string") {
+    return { error: "ID saran tidak valid." };
+  }
+
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("developer_suggestions")
+      .update({ is_read: true })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error marking suggestion as read:", error.message);
+      return { error: error.message };
+    }
+
+    revalidatePath("/admin/suggestions");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: unknown) {
+    console.error("Unexpected error in markSuggestionAsReadAction:", err);
+    return { error: "Gagal memperbarui status saran." };
+  }
+}
+
+/**
+ * Mark a single suggestion as unread
+ */
+export async function markSuggestionAsUnreadAction(
+  id: string
+): Promise<SuggestionActionState> {
+  if (!id || typeof id !== "string") {
+    return { error: "ID saran tidak valid." };
+  }
+
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("developer_suggestions")
+      .update({ is_read: false })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error marking suggestion as unread:", error.message);
+      return { error: error.message };
+    }
+
+    revalidatePath("/admin/suggestions");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: unknown) {
+    console.error("Unexpected error in markSuggestionAsUnreadAction:", err);
+    return { error: "Gagal memperbarui status saran." };
+  }
+}
+
+/**
+ * Bulk mark suggestions as read
+ */
+export async function bulkMarkSuggestionsAsReadAction(
+  ids: string[]
+): Promise<SuggestionActionState> {
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { error: "Daftar ID saran tidak valid." };
+  }
+
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("developer_suggestions")
+      .update({ is_read: true })
+      .in("id", ids);
+
+    if (error) {
+      console.error("Error in bulkMarkSuggestionsAsReadAction:", error.message);
+      return { error: error.message };
+    }
+
+    revalidatePath("/admin/suggestions");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: unknown) {
+    console.error("Unexpected error in bulkMarkSuggestionsAsReadAction:", err);
+    return { error: "Gagal memperbarui status saran terpilih." };
+  }
+}
+
+/**
+ * Mark ALL suggestions as read
+ */
+export async function markAllSuggestionsAsReadAction(): Promise<SuggestionActionState> {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("developer_suggestions")
+      .update({ is_read: true })
+      .eq("is_read", false);
+
+    if (error) {
+      console.error("Error in markAllSuggestionsAsReadAction:", error.message);
+      return { error: error.message };
+    }
+
+    revalidatePath("/admin/suggestions");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: unknown) {
+    console.error("Unexpected error in markAllSuggestionsAsReadAction:", err);
+    return { error: "Gagal menandai semua saran." };
   }
 }
 
@@ -99,8 +225,8 @@ export async function deleteSuggestionAction(
 export async function bulkDeleteSuggestionsAction(
   ids: string[]
 ): Promise<SuggestionActionState> {
-  if (!ids || ids.length === 0) {
-    return { error: "Pilih setidaknya satu saran untuk dihapus." };
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { error: "Daftar ID saran tidak valid." };
   }
 
   try {
@@ -130,6 +256,6 @@ export async function bulkDeleteSuggestionsAction(
     return { success: true };
   } catch (err: unknown) {
     console.error("Unexpected error in bulkDeleteSuggestionsAction:", err);
-    return { error: "Gagal menghapus saran yang dipilih." };
+    return { error: "Gagal menghapus saran terpilih." };
   }
 }

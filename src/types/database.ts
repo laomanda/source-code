@@ -140,18 +140,21 @@ export interface Database {
           id: string;
           type: "component" | "block" | "page" | "template" | "ui_design" | "feature" | "improvement" | "other";
           description: string;
+          is_read?: boolean;
           created_at: string;
         };
         Insert: {
           id?: string;
           type: "component" | "block" | "page" | "template" | "ui_design" | "feature" | "improvement" | "other";
           description: string;
+          is_read?: boolean;
           created_at?: string;
         };
         Update: {
           id?: string;
           type?: "component" | "block" | "page" | "template" | "ui_design" | "feature" | "improvement" | "other";
           description?: string;
+          is_read?: boolean;
           created_at?: string;
         };
         Relationships: [];

@@ -15,6 +15,7 @@ import {
 export interface AdminPreviewSandboxProps {
   html: string;
   title?: string;
+  frameHeight?: string;
   responsive?: {
     desktop: boolean;
     tablet: boolean;
@@ -26,7 +27,8 @@ export type AdminViewportMode = "desktop" | "tablet" | "mobile";
 
 export function AdminPreviewSandbox({
   html,
-  title = "Component Preview",
+  title = "Pratinjau Komponen",
+  frameHeight = "360px",
 }: AdminPreviewSandboxProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = React.useState<AdminViewportMode>("desktop");
@@ -147,33 +149,29 @@ export function AdminPreviewSandbox({
     <div
       ref={containerRef}
       className={`flex flex-col rounded-xl border border-[#BAE8E8] bg-white shadow-soft overflow-hidden transition-all duration-200 ${
-        isFullscreen ? "p-4 bg-white" : ""
+        isFullscreen ? "fixed inset-0 z-50 p-4 bg-white rounded-none border-0" : ""
       }`}
     >
       {/* Sandbox Header Control Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#BAE8E8] bg-[#FBFDFD] px-4 py-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#BAE8E8] bg-[#FBFDFD] px-3.5 py-2">
         {/* Left Indicator */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-semibold">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Admin Live Sandbox</span>
-          </div>
-          <span className="text-xs font-semibold text-[#272343] hidden sm:inline truncate max-w-[200px]">
+          <span className="text-xs font-semibold text-[#272343] hidden sm:inline truncate max-w-[180px]">
             {title}
           </span>
         </div>
 
         {/* Center: Viewport Switcher Buttons */}
-        <div className="flex items-center gap-1 bg-[#E3F6F5]/60 p-1 rounded-lg border border-[#BAE8E8]/60">
+        <div className="flex items-center gap-1 bg-[#E3F6F5]/60 p-0.5 rounded-lg border border-[#BAE8E8]/60">
           <button
             type="button"
             onClick={() => setViewport("desktop")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium transition-all ${
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
               viewport === "desktop"
-                ? "bg-[#272343] text-white shadow-soft-sm font-semibold"
+                ? "bg-[#272343] text-white shadow-soft-xs font-semibold"
                 : "text-[#2D334A]/80 hover:text-[#272343]"
             }`}
-            title="Desktop 100% Fluid"
+            title="Desktop (100% Fluid)"
           >
             <Monitor className="h-3.5 w-3.5" />
             <span className="hidden md:inline">Desktop</span>
@@ -182,41 +180,41 @@ export function AdminPreviewSandbox({
           <button
             type="button"
             onClick={() => setViewport("tablet")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium transition-all ${
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
               viewport === "tablet"
-                ? "bg-[#272343] text-white shadow-soft-sm font-semibold"
+                ? "bg-[#272343] text-white shadow-soft-xs font-semibold"
                 : "text-[#2D334A]/80 hover:text-[#272343]"
             }`}
-            title="Tablet 768px"
+            title="Tablet (768px)"
           >
             <Tablet className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">Tablet (768px)</span>
+            <span className="hidden md:inline">Tablet</span>
           </button>
 
           <button
             type="button"
             onClick={() => setViewport("mobile")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium transition-all ${
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
               viewport === "mobile"
-                ? "bg-[#272343] text-white shadow-soft-sm font-semibold"
+                ? "bg-[#272343] text-white shadow-soft-xs font-semibold"
                 : "text-[#2D334A]/80 hover:text-[#272343]"
             }`}
-            title="Mobile 375px"
+            title="Mobile (375px)"
           >
             <Smartphone className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">Mobile (375px)</span>
+            <span className="hidden md:inline">Mobile</span>
           </button>
         </div>
 
         {/* Right: Actions (Refresh & Fullscreen) */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
             onClick={handleRefresh}
-            title="Reload Preview Frame"
-            className="text-[#2D334A]/70 hover:text-[#272343] h-8 w-8"
+            title="Muat Ulang Pratinjau"
+            className="text-[#2D334A]/70 hover:text-[#272343] h-7 w-7"
           >
             <RefreshCw className="h-3.5 w-3.5" />
           </Button>
@@ -226,8 +224,8 @@ export function AdminPreviewSandbox({
             variant="ghost"
             size="icon-sm"
             onClick={toggleFullscreen}
-            title={isFullscreen ? "Exit Fullscreen" : "Fullscreen Preview"}
-            className="text-[#2D334A]/70 hover:text-[#272343] h-8 w-8"
+            title={isFullscreen ? "Keluar Layar Penuh" : "Pratinjau Layar Penuh"}
+            className="text-[#2D334A]/70 hover:text-[#272343] h-7 w-7"
           >
             {isFullscreen ? (
               <Minimize2 className="h-3.5 w-3.5" />
@@ -239,15 +237,16 @@ export function AdminPreviewSandbox({
       </div>
 
       {/* Frame Container Stage */}
-      <div className="relative flex min-h-[380px] max-h-[600px] flex-1 items-center justify-center overflow-auto bg-[#F8FAFC] p-4">
+      <div className="relative flex flex-1 items-center justify-center overflow-auto bg-[#F8FAFC] p-3">
         {previewDoc ? (
           <div
-            className={`relative mx-auto rounded-lg border border-[#BAE8E8] bg-white shadow-soft transition-all duration-300 ${
+            style={{ height: isFullscreen ? "100%" : frameHeight }}
+            className={`relative mx-auto rounded-lg border border-[#BAE8E8] bg-white shadow-soft-xs transition-all duration-300 ${
               viewport === "desktop"
-                ? "w-full h-[460px]"
+                ? "w-full"
                 : viewport === "tablet"
-                ? "w-[768px] h-[460px]"
-                : "w-[375px] h-[520px]"
+                ? "w-[768px]"
+                : "w-[375px]"
             }`}
           >
             <iframe
@@ -260,13 +259,13 @@ export function AdminPreviewSandbox({
             />
           </div>
         ) : (
-          <div className="text-center p-8 space-y-2 text-[#2D334A]/60">
-            <AlertCircle className="h-8 w-8 mx-auto text-amber-500" />
-            <p className="text-xs font-medium text-[#272343]">
-              No Preview HTML Provided Yet
+          <div className="text-center p-6 space-y-1.5 text-[#2D334A]/60">
+            <AlertCircle className="h-6 w-6 mx-auto text-amber-500" />
+            <p className="text-xs font-semibold text-[#272343]">
+              Belum Ada HTML Pratinjau
             </p>
-            <p className="text-[11px] max-w-xs mx-auto">
-              Write or paste HTML markup in the Preview HTML editor below to see real-time rendering.
+            <p className="text-[11px] max-w-xs mx-auto text-[#2D334A]/70">
+              Tulis atau tempel kode HTML pada editor Preview HTML untuk melihat tampilan komponen secara langsung.
             </p>
           </div>
         )}

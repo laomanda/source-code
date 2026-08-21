@@ -1,17 +1,17 @@
 import { z } from "zod";
 
 export const resourceFormSchema = z.object({
-  title: z.string().min(2, "Title must be at least 2 characters."),
+  title: z.string().min(2, "Judul komponen minimal 2 karakter."),
   slug: z
     .string()
-    .min(2, "Slug must be at least 2 characters.")
-    .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens."),
-  description: z.string().min(5, "Description must be at least 5 characters."),
-  category_id: z.string().uuid("Please select a valid category."),
+    .min(2, "Slug URL minimal 2 karakter.")
+    .regex(/^[a-z0-9-]+$/, "Slug hanya boleh berisi huruf kecil, angka, dan tanda hubung (-)."),
+  description: z.string().min(5, "Deskripsi minimal 5 karakter."),
+  category_id: z.string().uuid("Silakan pilih kategori yang valid."),
   tech_id: z.string().uuid().optional().nullable().or(z.literal("")),
-  technology: z.string().min(1, "Technology stack is required (e.g. React · Tailwind)."),
-  tags: z.string().min(1, "At least one tag is required (comma-separated)."),
-  source_code: z.string().min(5, "Source code cannot be empty."),
+  technology: z.string().min(1, "Nama teknologi wajib diisi (contoh: React · Tailwind)."),
+  tags: z.string().min(1, "Minimal satu tag wajib diisi (pisahkan dengan koma)."),
+  source_code: z.string().min(5, "Source code komponen tidak boleh kosong."),
   preview_html: z.string().optional(),
   preview_image_url: z.string().optional(),
   responsive_desktop: z.boolean(),

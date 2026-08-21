@@ -56,5 +56,6 @@ export interface DeveloperSuggestion {
   id: string;
   type: SuggestionType;
   description: string;
+  isRead?: boolean;
   createdAt: string;
 }

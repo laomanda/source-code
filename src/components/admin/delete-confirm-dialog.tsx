@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Trash2, X, AlertTriangle, Loader2 } from "lucide-react";
 
@@ -29,7 +30,13 @@ export function DeleteConfirmDialog({
   onClose,
   onCancel,
 }: DeleteConfirmDialogProps) {
+  const [mounted, setMounted] = React.useState(false);
   const loading = isLoading || isDeleting;
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const handleClose = React.useCallback(() => {
     if (onCancel) onCancel();
     else if (onClose) onClose();
@@ -46,18 +53,31 @@ export function DeleteConfirmDialog({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, loading, handleClose]);
 
-  if (!isOpen) return null;
+  // Lock body scroll when dialog is open
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
 
-  return (
+  if (!mounted || !isOpen) return null;
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150"
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="delete-dialog-title"
       aria-describedby="delete-dialog-desc"
+      onClick={handleClose}
     >
       <div
-        className="w-full max-w-md rounded-xl border border-rose-200 bg-white p-6 shadow-soft space-y-4 animate-in zoom-in-95 duration-150"
+        className="w-full max-w-md rounded-2xl border border-rose-200 bg-white p-6 shadow-soft-xl space-y-4 animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -103,15 +123,15 @@ export function DeleteConfirmDialog({
           )}
         </div>
 
-        {/* Footer Actions */}
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#BAE8E8]/60">
+        {/* Actions */}
+        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#BAE8E8]/40">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={handleClose}
             disabled={loading}
-            className="border-[#BAE8E8] text-[#2D334A] hover:bg-[#E3F6F5]/50"
+            className="text-xs border-[#BAE8E8] text-[#2D334A] hover:bg-slate-50"
           >
             Batal
           </Button>
@@ -122,7 +142,7 @@ export function DeleteConfirmDialog({
             size="sm"
             onClick={onConfirm}
             disabled={loading}
-            className="bg-rose-600 hover:bg-rose-700 text-white font-semibold gap-1.5 shadow-sm"
+            className="text-xs bg-rose-600 hover:bg-rose-700 text-white font-semibold gap-1.5 shadow-sm"
           >
             {loading ? (
               <>
@@ -132,12 +152,13 @@ export function DeleteConfirmDialog({
             ) : (
               <>
                 <Trash2 className="h-3.5 w-3.5" />
-                <span>Hapus Sekarang</span>
+                <span>Ya, Hapus</span>
               </>
             )}
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
