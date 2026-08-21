@@ -4,6 +4,7 @@ import { Hero } from "@/components/landing/hero";
 import { TechMarquee } from "@/components/landing/tech-marquee";
 import { ResourceShowcase } from "@/components/landing/resource-showcase";
 import { Introduction } from "@/components/landing/introduction";
+import { TestimonialsSection } from "@/components/landing/testimonials-section";
 import { DeveloperSuggestion } from "@/components/landing/developer-suggestion";
 import { Support } from "@/components/landing/support";
 import { Footer } from "@/components/landing/footer";
@@ -29,6 +30,7 @@ export default function LandingPage() {
         <TechMarquee />
         <ResourceShowcase />
         <Introduction />
+        <TestimonialsSection />
         <DeveloperSuggestion />
         <Support />
       </main>

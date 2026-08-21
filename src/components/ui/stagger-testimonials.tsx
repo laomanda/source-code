@@ -1,0 +1,232 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const SQRT_5000 = Math.sqrt(5000);
+
+export interface TestimonialItem {
+  tempId: number;
+  testimonial: string;
+  by: string;
+  imgSrc: string;
+}
+
+const defaultTestimonials: TestimonialItem[] = [
+  {
+    tempId: 0,
+    testimonial: "Komponen UI siap pakai di JakDev memangkas waktu slicing frontend kami hingga 5x lebih cepat.",
+    by: "Alex, Frontend Lead di TechCorp",
+    imgSrc: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+  },
+  {
+    tempId: 1,
+    testimonial: "Sangat bersih! Tanpa library berat yang berlebihan, tinggal copy-paste ke proyek Tailwind & Next.js.",
+    by: "Dani, Fullstack Developer di SecureNet",
+    imgSrc: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+  },
+  {
+    tempId: 2,
+    testimonial: "Fitur live preview dan interactive testing langsung di browser sangat menghemat waktu uji responsivitas.",
+    by: "Stephanie, UI Engineer di InnovateCo",
+    imgSrc: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
+  },
+  {
+    tempId: 3,
+    testimonial: "Template dan blok halamannya sangat modern, langsung siap pakai untuk MVP klien tanpa ribet setup.",
+    by: "Maria, Agency Founder di FuturePlanning",
+    imgSrc: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80",
+  },
+  {
+    tempId: 4,
+    testimonial: "100% free dan tanpa paywall, ini resource terbaik untuk developer web yang butuh komponen berkualitas tinggi.",
+    by: "Andre, Product Designer di CreativeSolutions",
+    imgSrc: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+  },
+  {
+    tempId: 5,
+    testimonial: "Komponen animasinya sangat halus dan gampang dikustomisasi sesuai tema warna proyek apa pun.",
+    by: "Jeremy, Frontend Developer di TimeWise",
+    imgSrc: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80",
+  },
+  {
+    tempId: 6,
+    testimonial: "Clean code dan TypeScript ready. Benar-benar standar kode modern yang langsung klop dengan codebase kami.",
+    by: "Pandu, Senior Web Developer di BrandBuilders",
+    imgSrc: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80",
+  },
+  {
+    tempId: 7,
+    testimonial: "JakDev selalu jadi andalan pertama setiap kali kami memulai proyek website baru dari nol.",
+    by: "Dimas, Lead Developer di AnalyticsPro",
+    imgSrc: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80",
+  },
+];
+
+interface TestimonialCardProps {
+  position: number;
+  testimonial: TestimonialItem;
+  handleMove: (steps: number) => void;
+  cardSize: number;
+}
+
+const TestimonialCard: React.FC<TestimonialCardProps> = ({
+  position,
+  testimonial,
+  handleMove,
+  cardSize,
+}) => {
+  const isCenter = position === 0;
+
+  return (
+    <div
+      onClick={() => handleMove(position)}
+      className={cn(
+        "absolute left-1/2 top-1/2 cursor-pointer border-2 p-6 sm:p-8 transition-all duration-500 ease-in-out select-none",
+        isCenter
+          ? "z-10 bg-[#272343] text-white border-[#272343] shadow-soft-lg"
+          : "z-0 bg-white text-[#2D334A] border-[#BAE8E8] hover:border-[#272343]/50 shadow-soft-xs"
+      )}
+      style={{
+        width: cardSize,
+        height: cardSize,
+        clipPath: `polygon(50px 0%, calc(100% - 50px) 0%, 100% 50px, 100% 100%, calc(100% - 50px) 100%, 50px 100%, 0 100%, 0 0)`,
+        transform: `
+          translate(-50%, -50%) 
+          translateX(${(cardSize / 1.5) * position}px)
+          translateY(${isCenter ? -55 : position % 2 ? 15 : -15}px)
+          rotate(${isCenter ? 0 : position % 2 ? 2.5 : -2.5}deg)
+        `,
+        boxShadow: isCenter ? "0px 10px 0px 4px #BAE8E8" : "0px 0px 0px 0px transparent",
+      }}
+    >
+      <span
+        className={cn(
+          "absolute block origin-top-right rotate-45",
+          isCenter ? "bg-[#FFD803]" : "bg-[#BAE8E8]"
+        )}
+        style={{
+          right: -2,
+          top: 48,
+          width: SQRT_5000,
+          height: 2,
+        }}
+      />
+      {/* Avatar Image */}
+      <img
+        src={testimonial.imgSrc}
+        alt={`${testimonial.by.split(",")[0]}`}
+        className="mb-4 h-12 w-12 sm:h-14 sm:w-14 rounded-lg bg-[#E3F6F5] object-cover object-top border border-[#BAE8E8]"
+        style={{
+          boxShadow: isCenter ? "3px 3px 0px #FFD803" : "3px 3px 0px #BAE8E8",
+        }}
+      />
+      <h3
+        className={cn(
+          "text-sm sm:text-base md:text-lg font-medium leading-snug line-clamp-4",
+          isCenter ? "text-white" : "text-[#272343]"
+        )}
+      >
+        &ldquo;{testimonial.testimonial}&rdquo;
+      </h3>
+      <p
+        className={cn(
+          "absolute bottom-6 sm:bottom-8 left-6 sm:left-8 right-6 sm:right-8 mt-2 text-xs sm:text-sm font-semibold",
+          isCenter ? "text-[#FFD803]" : "text-[#2D334A]/70"
+        )}
+      >
+        — {testimonial.by}
+      </p>
+    </div>
+  );
+};
+
+export interface StaggerTestimonialsProps {
+  items?: TestimonialItem[];
+  className?: string;
+}
+
+export const StaggerTestimonials: React.FC<StaggerTestimonialsProps> = ({
+  items = defaultTestimonials,
+  className,
+}) => {
+  const [cardSize, setCardSize] = useState(365);
+  const [testimonialsList, setTestimonialsList] = useState<TestimonialItem[]>(items);
+
+  const handleMove = (steps: number) => {
+    const newList = [...testimonialsList];
+    if (steps > 0) {
+      for (let i = steps; i > 0; i--) {
+        const item = newList.shift();
+        if (!item) return;
+        newList.push({ ...item, tempId: Math.random() });
+      }
+    } else {
+      for (let i = steps; i < 0; i++) {
+        const item = newList.pop();
+        if (!item) return;
+        newList.unshift({ ...item, tempId: Math.random() });
+      }
+    }
+    setTestimonialsList(newList);
+  };
+
+  useEffect(() => {
+    const updateSize = () => {
+      const { matches } = window.matchMedia("(min-width: 640px)");
+      setCardSize(matches ? 365 : 280);
+    };
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  return (
+    <div
+      className={cn("relative w-full overflow-hidden bg-transparent", className)}
+      style={{ height: 540 }}
+    >
+      {testimonialsList.map((testimonial, index) => {
+        const position =
+          testimonialsList.length % 2
+            ? index - Math.floor(testimonialsList.length / 2)
+            : index - testimonialsList.length / 2;
+        return (
+          <TestimonialCard
+            key={testimonial.tempId}
+            testimonial={testimonial}
+            handleMove={handleMove}
+            position={position}
+            cardSize={cardSize}
+          />
+        );
+      })}
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-3 z-20">
+        <button
+          onClick={() => handleMove(-1)}
+          className={cn(
+            "flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center text-xl transition-all rounded-xl",
+            "bg-white border-2 border-[#BAE8E8] text-[#272343] shadow-soft-xs hover:bg-[#FFD803] hover:border-[#272343] hover:scale-105 active:scale-95",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] focus-visible:ring-offset-2"
+          )}
+          aria-label="Previous testimonial"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+        <button
+          onClick={() => handleMove(1)}
+          className={cn(
+            "flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center text-xl transition-all rounded-xl",
+            "bg-white border-2 border-[#BAE8E8] text-[#272343] shadow-soft-xs hover:bg-[#FFD803] hover:border-[#272343] hover:scale-105 active:scale-95",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] focus-visible:ring-offset-2"
+          )}
+          aria-label="Next testimonial"
+        >
+          <ChevronRight className="h-6 w-6" />
+        </button>
+      </div>
+    </div>
+  );
+};
