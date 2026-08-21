@@ -24,7 +24,7 @@ export async function submitSuggestionAction(
   });
 
   if (!validation.success) {
-    const firstError = validation.error.issues[0]?.message || "Invalid suggestion input.";
+    const firstError = validation.error.issues[0]?.message || "Input saran tidak valid.";
     return { error: firstError };
   }
 
@@ -40,7 +40,7 @@ export async function submitSuggestionAction(
 
     if (error) {
       console.error("Supabase insert error on developer_suggestions:", error.message);
-      return { error: error.message || "Failed to submit suggestion. Please try again." };
+      return { error: "Gagal mengirimkan saran. Silakan coba lagi." };
     }
 
     revalidatePath("/admin/suggestions");
@@ -48,7 +48,7 @@ export async function submitSuggestionAction(
     return { success: true };
   } catch (err: unknown) {
     console.error("Unexpected error in submitSuggestionAction:", err);
-    return { error: "An unexpected error occurred. Please try again later." };
+    return { error: "Terjadi kesalahan sistem. Silakan coba beberapa saat lagi." };
   }
 }
 
@@ -59,7 +59,7 @@ export async function deleteSuggestionAction(
   id: string
 ): Promise<SuggestionActionState> {
   if (!id || typeof id !== "string") {
-    return { error: "Invalid suggestion ID." };
+    return { error: "ID saran tidak valid." };
   }
 
   try {
@@ -71,7 +71,7 @@ export async function deleteSuggestionAction(
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return { error: "Unauthorized. Please log in as admin." };
+      return { error: "Tidak memiliki izin. Silakan masuk sebagai admin." };
     }
 
     const { error } = await supabase
@@ -89,6 +89,6 @@ export async function deleteSuggestionAction(
     return { success: true };
   } catch (err: unknown) {
     console.error("Unexpected error in deleteSuggestionAction:", err);
-    return { error: "Failed to delete suggestion." };
+    return { error: "Gagal menghapus saran." };
   }
 }

@@ -107,8 +107,8 @@ export function useFavorites() {
 
         if (alreadyFav) {
           updated = favoriteItems.filter((i) => i.slug !== slug);
-          toast("Removed from Favorites", {
-            description: `"${itemTitle}" was removed.`,
+          toast.info("Dihapus dari Favorit", {
+            description: `"${itemTitle}" telah dihapus dari daftar favorit.`,
           });
         } else {
           const newItem: FavoriteItem = {
@@ -119,8 +119,8 @@ export function useFavorites() {
             addedAt: new Date().toISOString(),
           };
           updated = [newItem, ...favoriteItems];
-          toast.success("Added to Favorites!", {
-            description: `"${itemTitle}" saved to your favorites.`,
+          toast.success("Berhasil ditambahkan ke Favorit!", {
+            description: `"${itemTitle}" disimpan ke daftar favorit Anda.`,
           });
         }
 
@@ -131,7 +131,7 @@ export function useFavorites() {
         // Notify other components
         window.dispatchEvent(new Event(FAVORITES_EVENT_NAME));
       } catch (err) {
-        console.error("Failed to update favorites:", err);
+        console.error("Gagal memperbarui favorit:", err);
       }
     },
     [favoriteItems]
@@ -147,8 +147,8 @@ export function useFavorites() {
       setFavoriteItems(updated);
       window.dispatchEvent(new Event(FAVORITES_EVENT_NAME));
       if (target) {
-        toast("Removed from Favorites", {
-          description: `"${target.title}" was removed.`,
+        toast.info("Dihapus dari Favorit", {
+          description: `"${target.title}" telah dihapus dari favorit.`,
         });
       }
     },
@@ -161,7 +161,7 @@ export function useFavorites() {
     localStorage.removeItem(OLD_FAVORITES_KEY);
     setFavoriteItems([]);
     window.dispatchEvent(new Event(FAVORITES_EVENT_NAME));
-    toast.success("All favorites cleared");
+    toast.success("Semua favorit berhasil dihapus!");
   }, []);
 
   return {

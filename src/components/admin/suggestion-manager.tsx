@@ -91,7 +91,7 @@ export function SuggestionManager({ initialSuggestions }: SuggestionManagerProps
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     setHasCopied(true);
-    toast.success("Description copied to clipboard");
+    toast.success("Deskripsi saran berhasil disalin!");
     setTimeout(() => setHasCopied(false), 2000);
   };
 
@@ -109,14 +109,14 @@ export function SuggestionManager({ initialSuggestions }: SuggestionManagerProps
         return;
       }
 
-      toast.success("Suggestion deleted successfully.");
+      toast.success("Saran berhasil dihapus.");
       setSuggestions((prev) => prev.filter((s) => s.id !== suggestionToDelete.id));
       if (selectedSuggestion?.id === suggestionToDelete.id) {
         setSelectedSuggestion(null);
       }
       setSuggestionToDelete(null);
     } catch {
-      toast.error("Failed to delete suggestion.");
+      toast.error("Gagal menghapus saran.");
     } finally {
       setIsDeleting(false);
     }

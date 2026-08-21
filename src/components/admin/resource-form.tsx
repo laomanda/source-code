@@ -128,7 +128,7 @@ export function ResourceForm({
           setIsSubmitting(false);
           return;
         }
-        toast.success(`Resource "${values.title}" updated successfully.`);
+        toast.success(`Komponen "${values.title}" berhasil diperbarui!`);
       } else {
         const res = await createResourceAction(values);
         if (res.error) {
@@ -137,20 +137,20 @@ export function ResourceForm({
           setIsSubmitting(false);
           return;
         }
-        toast.success(`Resource "${values.title}" created successfully.`);
+        toast.success(`Komponen "${values.title}" berhasil ditambahkan!`);
       }
 
       router.push("/admin/resources");
       router.refresh();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to save resource.";
+      const msg = err instanceof Error ? err.message : "Gagal menyimpan komponen.";
       if (
         msg.includes("Server Action") ||
         msg.includes("was not found") ||
         msg.includes("UnrecognizedActionError")
       ) {
-        toast.error("Development server updated. Refreshing page...", {
-          description: "Reloading page to synchronize latest server actions.",
+        toast.error("Server diperbarui. Memuat ulang halaman...", {
+          description: "Memuat ulang halaman untuk menyinkronkan tindakan server terbaru.",
         });
         setTimeout(() => {
           window.location.reload();

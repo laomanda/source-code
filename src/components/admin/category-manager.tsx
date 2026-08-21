@@ -111,7 +111,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
           setErrorMessage(res.error);
           toast.error(res.error);
         } else {
-          toast.success(`Category "${name}" updated successfully.`);
+          toast.success(`Kategori "${name}" berhasil diperbarui!`);
           closeModal();
         }
       } else {
@@ -120,19 +120,19 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
           setErrorMessage(res.error);
           toast.error(res.error);
         } else {
-          toast.success(`Category "${name}" created successfully.`);
+          toast.success(`Kategori "${name}" berhasil ditambahkan!`);
           closeModal();
         }
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to process category.";
+      const msg = err instanceof Error ? err.message : "Gagal memproses kategori.";
       if (
         msg.includes("Server Action") ||
         msg.includes("was not found") ||
         msg.includes("UnrecognizedActionError")
       ) {
-        toast.error("Development server updated. Refreshing page...", {
-          description: "Reloading page to synchronize latest server actions.",
+        toast.error("Server diperbarui. Memuat ulang halaman...", {
+          description: "Memuat ulang halaman untuk menyinkronkan tindakan server terbaru.",
         });
         setTimeout(() => {
           window.location.reload();
@@ -149,7 +149,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   const handleOpenDelete = (cat: AdminCategoryWithCount) => {
     if (cat.resourceCount > 0) {
       toast.error(
-        `Cannot delete "${cat.name}": ${cat.resourceCount} resource(s) are linked to it. Please reassign those resources first.`
+        `Tidak dapat menghapus "${cat.name}": ada ${cat.resourceCount} komponen yang terhubung. Pindahkan komponen terlebih dahulu.`
       );
       return;
     }
@@ -165,18 +165,18 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
       if (res.error) {
         toast.error(res.error);
       } else {
-        toast.success(`Category "${categoryToDelete.name}" deleted.`);
+        toast.success(`Kategori "${categoryToDelete.name}" berhasil dihapus.`);
         setCategories((prev) => prev.filter((c) => c.id !== categoryToDelete.id));
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to delete category.";
+      const msg = err instanceof Error ? err.message : "Gagal menghapus kategori.";
       if (
         msg.includes("Server Action") ||
         msg.includes("was not found") ||
         msg.includes("UnrecognizedActionError")
       ) {
-        toast.error("Development server updated. Refreshing page...", {
-          description: "Reloading page to synchronize latest server actions.",
+        toast.error("Server diperbarui. Memuat ulang halaman...", {
+          description: "Memuat ulang halaman untuk menyinkronkan tindakan server terbaru.",
         });
         setTimeout(() => {
           window.location.reload();

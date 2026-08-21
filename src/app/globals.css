@@ -192,3 +192,64 @@ html {
   will-change: transform;
 }
 
+/* ==========================================================================
+   Sonner Toast & Feedback System (Hijau = Berhasil, Merah = Gagal)
+   ========================================================================== */
+[data-sonner-toast] {
+  border-radius: 0.75rem !important;
+  font-family: inherit !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 1. Berhasil = Hijau (Success) */
+[data-sonner-toast][data-type="success"] {
+  background-color: #ECFDF5 !important;
+  border: 1.5px solid #10B981 !important;
+  color: #064E3B !important;
+}
+[data-sonner-toast][data-type="success"] [data-icon] {
+  color: #059669 !important;
+}
+[data-sonner-toast][data-type="success"] [data-description] {
+  color: #047857 !important;
+}
+
+/* 2. Gagal = Merah (Error) */
+[data-sonner-toast][data-type="error"] {
+  background-color: #FEF2F2 !important;
+  border: 1.5px solid #EF4444 !important;
+  color: #7F1D1D !important;
+}
+[data-sonner-toast][data-type="error"] [data-icon] {
+  color: #DC2626 !important;
+}
+[data-sonner-toast][data-type="error"] [data-description] {
+  color: #B91C1C !important;
+}
+
+/* 3. Info / Default = Cyan Soft */
+[data-sonner-toast][data-type="info"] {
+  background-color: #F0FDFA !important;
+  border: 1.5px solid #14B8A6 !important;
+  color: #134E4A !important;
+}
+[data-sonner-toast][data-type="info"] [data-icon] {
+  color: #0D9488 !important;
+}
+[data-sonner-toast][data-type="info"] [data-description] {
+  color: #0F766E !important;
+}
+
+/* 4. Warning = Amber */
+[data-sonner-toast][data-type="warning"] {
+  background-color: #FFFBEB !important;
+  border: 1.5px solid #F59E0B !important;
+  color: #78350F !important;
+}
+[data-sonner-toast][data-type="warning"] [data-icon] {
+  color: #D97706 !important;
+}
+[data-sonner-toast][data-type="warning"] [data-description] {
+  color: #B45309 !important;
+}
+

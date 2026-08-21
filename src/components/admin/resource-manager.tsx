@@ -76,18 +76,18 @@ export function ResourceManager({
       if (res.error) {
         toast.error(res.error);
       } else {
-        toast.success(`Resource "${resourceToDelete.title}" deleted.`);
+        toast.success(`Komponen "${resourceToDelete.title}" berhasil dihapus.`);
         setResources((prev) => prev.filter((r) => r.id !== resourceToDelete.id));
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to delete resource.";
+      const msg = err instanceof Error ? err.message : "Gagal menghapus komponen.";
       if (
         msg.includes("Server Action") ||
         msg.includes("was not found") ||
         msg.includes("UnrecognizedActionError")
       ) {
-        toast.error("Development server updated. Refreshing page...", {
-          description: "Reloading page to synchronize latest server actions.",
+        toast.error("Server diperbarui. Memuat ulang halaman...", {
+          description: "Memuat ulang halaman untuk menyinkronkan tindakan server terbaru.",
         });
         setTimeout(() => {
           window.location.reload();
