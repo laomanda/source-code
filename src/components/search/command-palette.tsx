@@ -8,26 +8,13 @@ import {
   Search,
   X,
   ArrowRight,
-  Sparkles,
   Code2,
-  Bookmark,
-  Layers,
 } from "lucide-react";
 import { SAMPLE_LIBRARY_RESOURCES } from "@/lib/mock-data";
 
 export interface CommandPaletteProps {
   resources?: Resource[];
 }
-
-const POPULAR_SEARCHES = [
-  "Button",
-  "Navbar",
-  "Hero",
-  "Card",
-  "Accordion",
-  "React",
-  "Tailwind",
-];
 
 export function CommandPalette({ resources = [] }: CommandPaletteProps) {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -108,7 +95,7 @@ export function CommandPalette({ resources = [] }: CommandPaletteProps) {
     }
   }, [isOpen]);
 
-  // Search Results: Empty initially until user types or clicks a keyword
+  // Search Results: Empty initially until user types
   const searchResults = React.useMemo(() => {
     const trimmedQuery = query.trim();
     if (!trimmedQuery || !allResources.length) return [];
@@ -144,15 +131,6 @@ export function CommandPalette({ resources = [] }: CommandPaletteProps) {
   const handleSelect = (slug: string) => {
     router.push(`/resource/${slug}`);
     setIsOpen(false);
-  };
-
-  const handleChipClick = (term: string) => {
-    if (query.toLowerCase() === term.toLowerCase()) {
-      setQuery("");
-    } else {
-      setQuery(term);
-    }
-    inputRef.current?.focus();
   };
 
   if (!isOpen) return null;
@@ -203,33 +181,6 @@ export function CommandPalette({ resources = [] }: CommandPaletteProps) {
               <kbd>ESC</kbd>
             </div>
           )}
-        </div>
-
-        {/* Popular Filter Chips (Permanently visible so user can switch topics anytime) */}
-        <div className="px-4 sm:px-5 py-2.5 bg-[#FBFDFD] border-b border-[#BAE8E8]/40 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-          <span className="text-[11px] font-semibold text-[#2D334A]/70 flex items-center gap-1 shrink-0 mr-1">
-            <Sparkles className="h-3 w-3 text-[#272343]" />
-            Populer:
-          </span>
-          <div className="flex items-center gap-1.5">
-            {POPULAR_SEARCHES.map((term) => {
-              const isActive = query.toLowerCase() === term.toLowerCase();
-              return (
-                <button
-                  key={term}
-                  type="button"
-                  onClick={() => handleChipClick(term)}
-                  className={`px-2.5 py-0.5 rounded-full border transition-all text-[11px] font-medium shrink-0 shadow-soft-xs ${
-                    isActive
-                      ? "bg-[#272343] text-white border-[#272343] shadow-soft-sm font-semibold"
-                      : "bg-white border-[#BAE8E8] text-[#2D334A] hover:border-[#272343] hover:text-[#272343] hover:bg-[#E3F6F5]/50"
-                  }`}
-                >
-                  {term}
-                </button>
-              );
-            })}
-          </div>
         </div>
 
         {/* Results List or Clean Initial State */}
@@ -334,7 +285,7 @@ export function CommandPalette({ resources = [] }: CommandPaletteProps) {
             /* Clean Empty Initial State */
             <div className="py-8 px-4 text-center space-y-2">
               <p className="text-xs font-medium text-[#272343]/80">
-                Ketik nama komponen atau klik salah satu topik populer di atas untuk mulai mencari.
+                Ketik nama komponen, kategori, atau teknologi untuk mulai mencari.
               </p>
               <p className="text-[11px] text-[#2D334A]/50 font-mono">
                 Mendukung pencarian nama komponen, kategori, framework (React, Vue, HTML), dan tags.
@@ -359,29 +310,27 @@ export function CommandPalette({ resources = [] }: CommandPaletteProps) {
               <span>Tutup</span>
             </span>
           </div>
-
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 text-[#2D334A]/60">
             <button
               type="button"
               onClick={() => {
                 router.push("/favorites");
                 setIsOpen(false);
               }}
-              className="hover:text-[#272343] inline-flex items-center gap-1 font-medium transition-colors"
+              className="hover:text-[#272343] transition-colors"
             >
-              <Bookmark className="h-3 w-3" />
-              <span>Favorit</span>
+              Favorit
             </button>
+            <span>·</span>
             <button
               type="button"
               onClick={() => {
                 router.push("/library");
                 setIsOpen(false);
               }}
-              className="hover:text-[#272343] inline-flex items-center gap-1 font-medium transition-colors"
+              className="hover:text-[#272343] transition-colors"
             >
-              <Layers className="h-3 w-3" />
-              <span>Pustaka Lengkap</span>
+              Pustaka Lengkap
             </button>
           </div>
         </div>
