@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
-import { Resource, CategoryType, Technology } from "@/types";
+import { Resource, CategoryType, Technology, Category } from "@/types";
 import { ResourceCard } from "@/components/library/resource-card";
 import { EmptyState } from "@/components/library/empty-state";
 import { Container } from "@/components/ui/container";
@@ -17,31 +17,31 @@ import {
   Bookmark,
   Sparkles,
   ChevronDown,
+  Layers,
+  FolderTree,
 } from "lucide-react";
 
 export interface LibraryViewProps {
   initialResources?: Resource[];
   initialTechnologies?: Technology[];
+  initialCategories?: Category[];
 }
 
 const PAGE_SIZE = 12;
 
-const POPULAR_SEARCH_KEYWORDS = [
+const DEFAULT_POPULAR_KEYWORDS = [
   "Button",
   "Navbar",
   "Hero",
+  "Card",
   "Canvas",
+  "Modal",
   "Responsive",
   "Tailwind",
+  "Dashboard",
 ];
 
-const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
-  All: "Semua",
-  Components: "Komponen",
-  Blocks: "Blok",
-  Pages: "Halaman",
-  Templates: "Template",
-};
+const POPULARITY_STORAGE_KEY = "jakdev_popularity_v2";
 
 const normalizeSlug = (s: string) =>
   (s || "")
@@ -53,23 +53,75 @@ const normalizeSlug = (s: string) =>
 export function LibraryView({
   initialResources = [],
   initialTechnologies = [],
+  initialCategories = [],
 }: LibraryViewProps) {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("search") || "";
 
   const [searchQuery, setSearchQuery] = React.useState(initialQuery);
-  const [selectedCategory, setSelectedCategory] = React.useState<
-    "All" | CategoryType
-  >("All");
-  const [selectedTechnology, setSelectedTechnology] =
-    React.useState<string>("All");
+  const [selectedCategory, setSelectedCategory] = React.useState<string>("All");
+  const [selectedTechnology, setSelectedTechnology] = React.useState<string>("All");
   const [showFavoritesOnly, setShowFavoritesOnly] = React.useState(false);
   const [sortBy, setSortBy] = React.useState<
     "newest" | "relevance" | "alpha" | "oldest"
   >(initialQuery ? "relevance" : "newest");
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
+  // Popularity Metrics State (user click counts)
+  const [popularityMetrics, setPopularityMetrics] = React.useState<{
+    categories: Record<string, number>;
+    tags: Record<string, number>;
+  }>({ categories: {}, tags: {} });
+
   const { favoriteItems, favorites, isLoaded } = useFavorites();
+
+  // Load popularity metrics from localStorage
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem(POPULARITY_STORAGE_KEY);
+      if (saved) {
+        setPopularityMetrics(JSON.parse(saved));
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, []);
+
+  // Track click helper
+  const trackClick = React.useCallback(
+    (type: "category" | "tag" | "resource", item: string | Resource) => {
+      try {
+        setPopularityMetrics((prev) => {
+          const next = {
+            categories: { ...prev.categories },
+            tags: { ...prev.tags },
+          };
+
+          if (type === "category" && typeof item === "string" && item !== "All") {
+            next.categories[item] = (next.categories[item] || 0) + 1;
+          } else if (type === "tag" && typeof item === "string") {
+            next.tags[item] = (next.tags[item] || 0) + 1;
+          } else if (type === "resource" && typeof item === "object") {
+            if (item.category) {
+              next.categories[item.category] =
+                (next.categories[item.category] || 0) + 1;
+            }
+            if (item.tags) {
+              item.tags.forEach((t) => {
+                next.tags[t] = (next.tags[t] || 0) + 1;
+              });
+            }
+          }
+
+          localStorage.setItem(POPULARITY_STORAGE_KEY, JSON.stringify(next));
+          return next;
+        });
+      } catch {
+        // Ignore
+      }
+    },
+    [],
+  );
 
   // Sync initial query from URL search params if present
   React.useEffect(() => {
@@ -77,6 +129,10 @@ export function LibraryView({
     if (q) {
       setSearchQuery(q);
       setSortBy("relevance");
+    }
+    const cat = searchParams.get("category");
+    if (cat) {
+      setSelectedCategory(cat);
     }
   }, [searchParams]);
 
@@ -95,6 +151,23 @@ export function LibraryView({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // All distinct categories from Database (fallback to distinct categories in resources)
+  const dbCategories = React.useMemo(() => {
+    if (initialCategories && initialCategories.length > 0) {
+      return initialCategories;
+    }
+    const extracted = Array.from(
+      new Set(initialResources.map((r) => r.category).filter(Boolean)),
+    );
+    return extracted.map((name) => ({
+      id: name.toLowerCase().replace(/\s+/g, "-"),
+      name,
+      slug: name.toLowerCase().replace(/\s+/g, "-"),
+      description: null,
+      createdAt: new Date().toISOString(),
+    }));
+  }, [initialCategories, initialResources]);
 
   // Distinct technologies from database or dataset
   const techOptions = React.useMemo(() => {
@@ -116,22 +189,96 @@ export function LibraryView({
     ];
   }, [initialTechnologies, initialResources]);
 
-  const categories: Array<"All" | CategoryType> = [
-    "All",
-    "Components",
-    "Blocks",
-    "Pages",
-    "Templates",
-  ];
-
-  // Category counts
+  // Dynamic Category component counts
   const categoryCounts = React.useMemo(() => {
     const counts: Record<string, number> = { All: initialResources.length };
-    initialResources.forEach((r) => {
-      counts[r.category] = (counts[r.category] || 0) + 1;
+    dbCategories.forEach((cat) => {
+      counts[cat.name] = initialResources.filter((r) => {
+        if (r.categoryId && r.categoryId === cat.id) return true;
+        if (
+          r.category &&
+          (r.category.toLowerCase() === cat.name.toLowerCase() ||
+            r.category.toLowerCase() === cat.slug.toLowerCase())
+        ) {
+          return true;
+        }
+        return false;
+      }).length;
     });
     return counts;
-  }, [initialResources]);
+  }, [dbCategories, initialResources]);
+
+  // Top Most Popular Categories (sorted by user clicks + resource count)
+  const popularCategories = React.useMemo(() => {
+    const scored = dbCategories.map((cat) => {
+      const clickCount = popularityMetrics.categories[cat.name] || 0;
+      const resCount = categoryCounts[cat.name] || 0;
+      const score = clickCount * 3 + resCount * 2;
+      return { ...cat, score, resCount };
+    });
+
+    // Sort descending by popularity score
+    scored.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.name.localeCompare(b.name);
+    });
+
+    // Top 5 categories
+    const top = scored.slice(0, 5);
+
+    // If selected category is not in top 5, ensure it's included so active pill is visible
+    if (
+      selectedCategory !== "All" &&
+      !top.some((c) => c.name.toLowerCase() === selectedCategory.toLowerCase())
+    ) {
+      const found = dbCategories.find(
+        (c) => c.name.toLowerCase() === selectedCategory.toLowerCase(),
+      );
+      if (found) {
+        top.push({
+          ...found,
+          score: 0,
+          resCount: categoryCounts[found.name] || 0,
+        });
+      }
+    }
+
+    return top;
+  }, [dbCategories, popularityMetrics.categories, categoryCounts, selectedCategory]);
+
+  // Dynamic Popular Search Keywords (most clicked tags + resources tags)
+  const popularKeywords = React.useMemo(() => {
+    const tagScores: Record<string, number> = {};
+
+    // 1. Base weights from actual resources tags
+    initialResources.forEach((r) => {
+      if (r.tags) {
+        r.tags.forEach((t) => {
+          const formatted = t.trim();
+          if (formatted) {
+            tagScores[formatted] = (tagScores[formatted] || 0) + 1;
+          }
+        });
+      }
+    });
+
+    // 2. Default popular fallback seeds
+    DEFAULT_POPULAR_KEYWORDS.forEach((kw) => {
+      tagScores[kw] = (tagScores[kw] || 0) + 2;
+    });
+
+    // 3. User interaction click weights
+    Object.entries(popularityMetrics.tags).forEach(([tag, count]) => {
+      tagScores[tag] = (tagScores[tag] || 0) + count * 4;
+    });
+
+    // Sort by popularity score descending
+    const sorted = Object.entries(tagScores)
+      .sort((a, b) => b[1] - a[1])
+      .map(([tag]) => tag);
+
+    return sorted.slice(0, 7);
+  }, [initialResources, popularityMetrics.tags]);
 
   // Filter and sort resources using Smart Search Engine
   const filteredResources = React.useMemo(() => {
@@ -169,7 +316,9 @@ export function LibraryView({
             f.slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
           slug: f.slug,
           description: "Komponen yang telah disimpan di favorit Anda.",
+          categoryId: null,
           category: (f.category as CategoryType) || "Components",
+          techId: null,
           technology: f.technology || "React · Tailwind",
           tags: ["favorite", (f.category || "components").toLowerCase()],
           sourceCode: "",
@@ -181,12 +330,31 @@ export function LibraryView({
       baseList = [...matched, ...missing];
     }
 
-    // Category filter
+    // Category filter (relational categoryId or category name)
     if (selectedCategory !== "All") {
-      baseList = baseList.filter((r) => r.category === selectedCategory);
+      const selectedCatObj = dbCategories.find(
+        (c) =>
+          c.name.toLowerCase() === selectedCategory.toLowerCase() ||
+          c.slug.toLowerCase() === selectedCategory.toLowerCase(),
+      );
+
+      baseList = baseList.filter((r) => {
+        if (selectedCatObj && r.categoryId && r.categoryId === selectedCatObj.id) {
+          return true;
+        }
+        if (
+          r.category &&
+          (r.category.toLowerCase() === selectedCategory.toLowerCase() ||
+            (selectedCatObj &&
+              r.category.toLowerCase() === selectedCatObj.slug.toLowerCase()))
+        ) {
+          return true;
+        }
+        return false;
+      });
     }
 
-    // Technology filter (supports both relational techId and substring text)
+    // Technology filter (supports relational techId and substring text)
     if (selectedTechnology !== "All") {
       const selectedTechObj = initialTechnologies?.find(
         (t) =>
@@ -204,76 +372,54 @@ export function LibraryView({
       });
     }
 
-    // Smart Search Query Evaluation
+    // Smart Search Engine
+    let resultList = baseList;
     if (searchQuery.trim()) {
       const searchResults = smartSearchResources(baseList, searchQuery);
-
-      if (sortBy === "relevance") {
-        return searchResults.map((res) => res.item);
-      }
-
-      // If user selected specific sort order (e.g. newest / alpha / oldest)
-      const matchingItems = searchResults.map((res) => res.item);
-      return [...matchingItems].sort((a, b) => {
-        if (sortBy === "alpha") {
-          return a.title.localeCompare(b.title);
-        }
-        if (sortBy === "oldest") {
-          return (
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          );
-        }
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-      });
+      resultList = searchResults.map((res) => res.item);
     }
 
-    // Standard Sorting when no search query
-    return [...baseList].sort((a, b) => {
+    // Sorting
+    return [...resultList].sort((a, b) => {
       if (sortBy === "alpha") {
         return a.title.localeCompare(b.title);
       }
       if (sortBy === "oldest") {
-        return (
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       }
-      // default: newest
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (sortBy === "newest") {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      return 0;
     });
   }, [
     initialResources,
-    initialTechnologies,
     showFavoritesOnly,
     favoriteItems,
-    searchQuery,
     selectedCategory,
+    dbCategories,
     selectedTechnology,
+    initialTechnologies,
+    searchQuery,
     sortBy,
   ]);
 
-  const [visibleCount, setVisibleCount] = React.useState(PAGE_SIZE);
+  // Pagination / Infinite Load state
+  const [displayCount, setDisplayCount] = React.useState(PAGE_SIZE);
 
-  // Reset visibleCount back to 12 whenever any search or filter criteria change
+  // Reset pagination when query or filters change
   React.useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [
-    searchQuery,
-    selectedCategory,
-    selectedTechnology,
-    showFavoritesOnly,
-    sortBy,
-  ]);
+    setDisplayCount(PAGE_SIZE);
+  }, [searchQuery, selectedCategory, selectedTechnology, showFavoritesOnly, sortBy]);
 
   const displayedResources = React.useMemo(() => {
-    return filteredResources.slice(0, visibleCount);
-  }, [filteredResources, visibleCount]);
+    return filteredResources.slice(0, displayCount);
+  }, [filteredResources, displayCount]);
 
-  const hasMore = visibleCount < filteredResources.length;
+  const hasMore = displayCount < filteredResources.length;
 
   const handleLoadMore = () => {
-    setVisibleCount((prev) => prev + PAGE_SIZE);
+    setDisplayCount((prev) => prev + PAGE_SIZE);
   };
 
   const handleResetFilters = () => {
@@ -282,7 +428,6 @@ export function LibraryView({
     setSelectedTechnology("All");
     setShowFavoritesOnly(false);
     setSortBy("newest");
-    setVisibleCount(PAGE_SIZE);
   };
 
   const hasActiveFilters =
@@ -292,16 +437,20 @@ export function LibraryView({
     showFavoritesOnly;
 
   return (
-    <div className="py-8 sm:py-12 bg-white min-h-[calc(100vh-4rem)]">
+    <div className="py-8 sm:py-12 bg-background min-h-screen">
       <Container size="xl" className="space-y-8">
-        {/* Header Title Section */}
-        <div className="space-y-3 max-w-3xl">
-          <h1 className="text-h1">Jelajahi Pustaka Source Code</h1>
-          <p className="text-body text-[#2D334A]/80">
+        {/* Header Title & Catalog Stats */}
+        <div className="space-y-3">
+          <h1 className="text-h1 text-[#272343] tracking-tight">
+            Katalog Source Code
+          </h1>
+          <p className="text-body text-[#2D334A]/80 max-w-3xl">
             Cari, coba langsung, dan salin komponen, blok, dan template siap
-            pakai secara gratis. Filter berdasarkan teknologi, simpan ke
+            pakai secara gratis. Filter berdasarkan kategori dan teknologi, simpan ke
             favorit, dan uji responsivitasnya.
           </p>
+
+          {/* Real-time Catalog Statistics Banner */}
           <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-[#2D334A]/70">
             <span className="font-semibold text-[#272343] mr-1">
               Statistik Katalog:
@@ -310,8 +459,13 @@ export function LibraryView({
               <strong>{initialResources.length}</strong> Komponen
             </span>
             <span className="inline-flex items-center gap-1 bg-[#E3F6F5]/70 px-2.5 py-0.5 rounded-full border border-[#BAE8E8] font-mono text-[11px] text-[#272343]">
-              <strong>{Object.keys(categoryCounts).length - 1}</strong> Kategori
+              <strong>{dbCategories.length}</strong> Kategori
             </span>
+            {initialTechnologies.length > 0 && (
+              <span className="inline-flex items-center gap-1 bg-[#E3F6F5]/70 px-2.5 py-0.5 rounded-full border border-[#BAE8E8] font-mono text-[11px] text-[#272343]">
+                <strong>{initialTechnologies.length}</strong> Teknologi
+              </span>
+            )}
           </div>
         </div>
 
@@ -369,7 +523,7 @@ export function LibraryView({
                       | "oldest",
                   )
                 }
-                className="h-11 rounded-md border border-[#BAE8E8] bg-white px-3 py-2 text-xs font-medium text-[#272343] shadow-soft-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343]"
+                className="h-11 rounded-md border border-[#BAE8E8] bg-white px-3 py-2 text-xs font-medium text-[#272343] shadow-soft-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] cursor-pointer"
                 aria-label="Urutkan komponen"
               >
                 {searchQuery && (
@@ -382,19 +536,20 @@ export function LibraryView({
             </div>
           </div>
 
-          {/* Popular Suggestions Quick Pills */}
+          {/* Dynamic Popular Search Keywords Quick Pills */}
           <div className="flex flex-wrap items-center gap-1.5 text-xs text-[#2D334A]/70">
             <span className="inline-flex items-center gap-1 font-semibold text-[#272343] mr-1 text-[11px]">
               <Sparkles className="h-3 w-3 text-[#0D6E6E]" />
               Populer:
             </span>
-            {POPULAR_SEARCH_KEYWORDS.map((kw) => (
+            {popularKeywords.map((kw) => (
               <button
                 key={kw}
                 type="button"
                 onClick={() => {
                   setSearchQuery(kw);
                   setSortBy("relevance");
+                  trackClick("tag", kw);
                   searchInputRef.current?.focus();
                 }}
                 className={`px-2 py-0.5 rounded-md border text-[11px] font-medium transition-colors ${
@@ -409,36 +564,62 @@ export function LibraryView({
           </div>
         </div>
 
-        {/* Filter Section: Category Tabs & Favorites Toggle & Technology Pills */}
+        {/* Filter Section: Category Tabs, Database Dropdown & Favorites Toggle */}
         <div className="space-y-4 pt-2 border-t border-[#BAE8E8]/60">
-          {/* Category Tabs + Favorites Tab */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold text-[#272343] mr-2 flex items-center gap-1">
+            <span className="text-xs font-semibold text-[#272343] mr-1 flex items-center gap-1">
+              <FolderTree className="h-3.5 w-3.5 text-[#0D6E6E]" />
               <span>Kategori:</span>
             </span>
 
-            {/* Standard Category Tabs */}
-            {categories.map((category) => {
-              const count = categoryCounts[category] || 0;
+            {/* "Semua" Pill */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowFavoritesOnly(false);
+                setSelectedCategory("All");
+              }}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] ${
+                !showFavoritesOnly && selectedCategory === "All"
+                  ? "bg-[#272343] text-white shadow-soft-sm font-semibold"
+                  : "bg-[#E3F6F5]/60 text-[#2D334A] border border-[#BAE8E8]/60 hover:bg-[#E3F6F5] hover:text-[#272343]"
+              }`}
+            >
+              <span>Semua</span>
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                  !showFavoritesOnly && selectedCategory === "All"
+                    ? "bg-[#FFD803] text-[#272343] font-bold"
+                    : "bg-white/80 text-[#2D334A]/70"
+                }`}
+              >
+                {initialResources.length}
+              </span>
+            </button>
+
+            {/* Most Popular / Most Viewed Categories Quick Pills */}
+            {popularCategories.map((cat) => {
+              const count = categoryCounts[cat.name] || 0;
               const isSelected =
-                !showFavoritesOnly && selectedCategory === category;
-              const label = CATEGORY_DISPLAY_NAMES[category] || category;
+                !showFavoritesOnly &&
+                selectedCategory.toLowerCase() === cat.name.toLowerCase();
 
               return (
                 <button
-                  key={category}
+                  key={cat.id || cat.name}
                   type="button"
                   onClick={() => {
                     setShowFavoritesOnly(false);
-                    setSelectedCategory(category);
+                    setSelectedCategory(cat.name);
+                    trackClick("category", cat.name);
                   }}
-                  className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] ${
                     isSelected
                       ? "bg-[#272343] text-white shadow-soft-sm font-semibold"
                       : "bg-[#E3F6F5]/60 text-[#2D334A] border border-[#BAE8E8]/60 hover:bg-[#E3F6F5] hover:text-[#272343]"
                   }`}
                 >
-                  <span>{label}</span>
+                  <span>{cat.name}</span>
                   <span
                     className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
                       isSelected
@@ -452,6 +633,48 @@ export function LibraryView({
               );
             })}
 
+            {/* Dropdown Select for ALL Database Categories */}
+            <div className="relative inline-flex items-center">
+              <select
+                value={selectedCategory}
+                onChange={(e) => {
+                  setShowFavoritesOnly(false);
+                  setSelectedCategory(e.target.value);
+                  trackClick("category", e.target.value);
+                }}
+                className={`h-8 pl-2.5 pr-7 rounded-lg text-xs font-semibold transition-all shadow-soft-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] cursor-pointer appearance-none ${
+                  selectedCategory !== "All" &&
+                  !popularCategories.some(
+                    (c) => c.name.toLowerCase() === selectedCategory.toLowerCase(),
+                  )
+                    ? "bg-[#272343] text-white border border-[#272343]"
+                    : "bg-white text-[#272343] border border-[#BAE8E8] hover:border-[#272343]/50"
+                }`}
+                aria-label="Pilih dari semua kategori"
+              >
+                <option value="All">
+                  Pilih Kategori Lainnya ({dbCategories.length})...
+                </option>
+                <optgroup label="Semua Kategori Database">
+                  {dbCategories.map((c) => (
+                    <option key={c.id || c.name} value={c.name}>
+                      {c.name} ({categoryCounts[c.name] || 0})
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+              <ChevronDown
+                className={`absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 pointer-events-none ${
+                  selectedCategory !== "All" &&
+                  !popularCategories.some(
+                    (c) => c.name.toLowerCase() === selectedCategory.toLowerCase(),
+                  )
+                    ? "text-white"
+                    : "text-[#2D334A]/60"
+                }`}
+              />
+            </div>
+
             {/* Favorites Tab Button */}
             <button
               type="button"
@@ -462,7 +685,7 @@ export function LibraryView({
                   return next;
                 });
               }}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#272343] ${
                 showFavoritesOnly
                   ? "bg-[#FFD803] text-[#272343] border-[#F2CD00] font-bold shadow-soft-sm"
                   : "bg-white text-[#2D334A] border-[#BAE8E8] hover:bg-[#E3F6F5]/60"
@@ -491,7 +714,8 @@ export function LibraryView({
 
           {/* Technology Filter Pills */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-xs font-semibold text-[#272343] mr-2 flex items-center gap-1">
+            <span className="text-xs font-semibold text-[#272343] mr-1 flex items-center gap-1">
+              <Layers className="h-3.5 w-3.5 text-[#0D6E6E]" />
               <span>Teknologi:</span>
             </span>
             {techOptions.map((tech) => {
@@ -518,7 +742,20 @@ export function LibraryView({
 
         {/* Results Counter & Active Filter Dismissals */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-b border-[#BAE8E8]/60 pb-4">
-          <div className="flex items-center gap-2 text-xs text-[#2D334A]">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-[#2D334A]">
+            <span className="text-[#2D334A]/80">
+              Menemukan <strong className="text-[#272343]">{filteredResources.length}</strong> komponen
+            </span>
+            {selectedCategory !== "All" && (
+              <span className="inline-flex items-center gap-1 font-semibold text-[#272343] bg-[#E3F6F5] border border-[#BAE8E8] px-2 py-0.5 rounded">
+                Kategori: {selectedCategory}
+              </span>
+            )}
+            {selectedTechnology !== "All" && (
+              <span className="inline-flex items-center gap-1 font-semibold text-[#272343] bg-[#E3F6F5] border border-[#BAE8E8] px-2 py-0.5 rounded">
+                Teknologi: {selectedTechnology}
+              </span>
+            )}
             {showFavoritesOnly && (
               <span className="inline-flex items-center gap-1 font-semibold text-[#0D6E6E] bg-[#E3F6F5] px-2 py-0.5 rounded">
                 <Bookmark className="h-3 w-3 fill-[#0D6E6E]" />
@@ -551,10 +788,12 @@ export function LibraryView({
           <div className="space-y-8 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {displayedResources.map((resource) => (
-                <ResourceCard
+                <div
                   key={resource.id || resource.slug}
-                  resource={resource}
-                />
+                  onClick={() => trackClick("resource", resource)}
+                >
+                  <ResourceCard resource={resource} />
+                </div>
               ))}
             </div>
 

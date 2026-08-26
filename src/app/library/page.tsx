@@ -4,6 +4,7 @@ import { Footer } from "@/components/landing/footer";
 import { LibraryView } from "@/components/library/library-view";
 import { getPublishedResources } from "@/lib/data/resources";
 import { getTechnologies } from "@/lib/data/technologies";
+import { getCategories } from "@/lib/data/categories";
 
 export const dynamic = "force-dynamic";
 
@@ -14,9 +15,10 @@ export const metadata: Metadata = {
 };
 
 export default async function LibraryPage() {
-  const [resources, technologies] = await Promise.all([
+  const [resources, technologies, categories] = await Promise.all([
     getPublishedResources(),
     getTechnologies(),
+    getCategories(),
   ]);
 
   return (
@@ -26,6 +28,7 @@ export default async function LibraryPage() {
         <LibraryView
           initialResources={resources}
           initialTechnologies={technologies}
+          initialCategories={categories}
         />
       </main>
       <Footer />

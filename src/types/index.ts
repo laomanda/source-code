@@ -1,6 +1,9 @@
-export * from "./database";
-
-export type CategoryType = "Components" | "Blocks" | "Pages" | "Templates";
+export type CategoryType =
+  | "Components"
+  | "Blocks"
+  | "Pages"
+  | "Templates"
+  | (string & {});
 
 export interface Category {
   id: string;
