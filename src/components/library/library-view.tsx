@@ -15,7 +15,6 @@ import {
   X,
   ArrowUpDown,
   Bookmark,
-  Sparkles,
   ChevronDown,
   Layers,
   FolderTree,
@@ -28,18 +27,6 @@ export interface LibraryViewProps {
 }
 
 const PAGE_SIZE = 12;
-
-const DEFAULT_POPULAR_KEYWORDS = [
-  "Button",
-  "Navbar",
-  "Hero",
-  "Card",
-  "Canvas",
-  "Modal",
-  "Responsive",
-  "Tailwind",
-  "Dashboard",
-];
 
 const POPULARITY_STORAGE_KEY = "jakdev_popularity_v2";
 
@@ -245,40 +232,6 @@ export function LibraryView({
 
     return top;
   }, [dbCategories, popularityMetrics.categories, categoryCounts, selectedCategory]);
-
-  // Dynamic Popular Search Keywords (most clicked tags + resources tags)
-  const popularKeywords = React.useMemo(() => {
-    const tagScores: Record<string, number> = {};
-
-    // 1. Base weights from actual resources tags
-    initialResources.forEach((r) => {
-      if (r.tags) {
-        r.tags.forEach((t) => {
-          const formatted = t.trim();
-          if (formatted) {
-            tagScores[formatted] = (tagScores[formatted] || 0) + 1;
-          }
-        });
-      }
-    });
-
-    // 2. Default popular fallback seeds
-    DEFAULT_POPULAR_KEYWORDS.forEach((kw) => {
-      tagScores[kw] = (tagScores[kw] || 0) + 2;
-    });
-
-    // 3. User interaction click weights
-    Object.entries(popularityMetrics.tags).forEach(([tag, count]) => {
-      tagScores[tag] = (tagScores[tag] || 0) + count * 4;
-    });
-
-    // Sort by popularity score descending
-    const sorted = Object.entries(tagScores)
-      .sort((a, b) => b[1] - a[1])
-      .map(([tag]) => tag);
-
-    return sorted.slice(0, 7);
-  }, [initialResources, popularityMetrics.tags]);
 
   // Filter and sort resources using Smart Search Engine
   const filteredResources = React.useMemo(() => {
@@ -534,33 +487,6 @@ export function LibraryView({
                 <option value="oldest">Terlama</option>
               </select>
             </div>
-          </div>
-
-          {/* Dynamic Popular Search Keywords Quick Pills */}
-          <div className="flex flex-wrap items-center gap-1.5 text-xs text-[#2D334A]/70">
-            <span className="inline-flex items-center gap-1 font-semibold text-[#272343] mr-1 text-[11px]">
-              <Sparkles className="h-3 w-3 text-[#0D6E6E]" />
-              Populer:
-            </span>
-            {popularKeywords.map((kw) => (
-              <button
-                key={kw}
-                type="button"
-                onClick={() => {
-                  setSearchQuery(kw);
-                  setSortBy("relevance");
-                  trackClick("tag", kw);
-                  searchInputRef.current?.focus();
-                }}
-                className={`px-2 py-0.5 rounded-md border text-[11px] font-medium transition-colors ${
-                  searchQuery.toLowerCase() === kw.toLowerCase()
-                    ? "bg-[#FFD803] border-[#F2CD00] text-[#272343] font-bold"
-                    : "bg-[#FBFDFD] border-[#BAE8E8] text-[#2D334A] hover:bg-[#E3F6F5] hover:text-[#272343]"
-                }`}
-              >
-                {kw}
-              </button>
-            ))}
           </div>
         </div>
 
