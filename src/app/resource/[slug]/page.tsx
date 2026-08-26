@@ -9,18 +9,13 @@ import { ResourceBreadcrumb } from "@/components/resource/resource-breadcrumb";
 import { ResourceHeader } from "@/components/resource/resource-header";
 import { PreviewFrame } from "@/components/resource/preview-frame";
 import { CodeViewer } from "@/components/resource/code-viewer";
-import { getResourceBySlug, getPublishedResources } from "@/lib/data/resources";
+import { getResourceBySlug } from "@/lib/data/resources";
 import { Eye, Edit } from "lucide-react";
+
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
-}
-
-export async function generateStaticParams() {
-  const resources = await getPublishedResources();
-  return resources.map((resource) => ({
-    slug: resource.slug,
-  }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -99,7 +94,7 @@ export default async function ResourceDetailPage({ params }: PageProps) {
             <PreviewFrame resource={resource} />
           </section>
 
-          {/* Source Code Viewer (Shiki Highlighting) */}
+          {/* Source Code Viewer */}
           <section aria-labelledby="code-heading" className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 id="code-heading" className="text-h3 text-[#272343]">

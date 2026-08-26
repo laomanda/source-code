@@ -1,5 +1,4 @@
 import * as React from "react";
-import { codeToHtml } from "shiki";
 import { CodeActions } from "@/components/resource/code-actions";
 import { Terminal } from "lucide-react";
 
@@ -10,7 +9,7 @@ export interface CodeViewerProps {
 }
 
 function resolveShikiLanguage(technology: string): string {
-  const tech = technology.toLowerCase();
+  const tech = (technology || "").toLowerCase();
   if (tech.includes("tsx") || tech.includes("react") || tech.includes("next")) return "tsx";
   if (tech.includes("typescript") || tech.includes("ts")) return "typescript";
   if (tech.includes("html")) return "html";
@@ -19,29 +18,34 @@ function resolveShikiLanguage(technology: string): string {
   return "text";
 }
 
+function escapeHtml(text: string): string {
+  return (text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export async function CodeViewer({ sourceCode, technology, slug }: CodeViewerProps) {
   const lang = resolveShikiLanguage(technology);
 
   let highlightedHtml = "";
   try {
+    const { codeToHtml } = await import("shiki");
     highlightedHtml = await codeToHtml(sourceCode, {
       lang,
       theme: "github-dark-default",
     });
   } catch (err) {
-    console.warn(`Shiki highlighting gagal untuk ${lang}, menggunakan plain text:`, err);
-    try {
-      highlightedHtml = await codeToHtml(sourceCode, {
-        lang: "text",
-        theme: "github-dark-default",
-      });
-    } catch {
-      highlightedHtml = `<pre><code>${sourceCode}</code></pre>`;
-    }
+    console.warn("Shiki syntax highlighter fallback to safe escaping:", err);
+    highlightedHtml = `<pre class="shiki github-dark-default" style="background-color:transparent;color:#e1e4e8"><code>${escapeHtml(
+      sourceCode
+    )}</code></pre>`;
   }
 
   // Count lines for information
-  const lineCount = sourceCode.split("\n").length;
+  const lineCount = (sourceCode || "").split("\n").length;
 
   return (
     <div className="rounded-xl border border-[#BAE8E8] bg-[#272343] shadow-soft overflow-hidden text-left flex flex-col">

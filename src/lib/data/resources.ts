@@ -140,23 +140,38 @@ export async function getResourceBySlug(
   try {
     const supabase = await createClient();
 
-    // 1. Fast path: Attempt fetching published resource directly without auth round-trip
-    const fastRes = await supabase
+    // 1. Fast path: Attempt fetching published resource directly
+    let res = await supabase
       .from("resources")
       .select(BASE_SELECT_WITH_TECH)
       .eq("slug", slug)
       .eq("status", "published")
       .maybeSingle();
 
-    if (fastRes.data) {
-      return mapRowToResource(fastRes.data as unknown as ResourceRowWithCategory);
+    if (res.error && (res.error.message?.includes("tech_id") || res.error.code === "42703")) {
+      res = await supabase
+        .from("resources")
+        .select(BASE_SELECT_FALLBACK)
+        .eq("slug", slug)
+        .eq("status", "published")
+        .maybeSingle();
+    }
+
+    if (res.data) {
+      return mapRowToResource(res.data as unknown as ResourceRowWithCategory);
     }
 
     // 2. If allowDraft requested or fast query returned nothing, check admin auth
     let isUserAdmin = allowDraft;
     if (!isUserAdmin) {
-      const { data: { user } } = await supabase.auth.getUser();
-      isUserAdmin = !!user;
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        isUserAdmin = !!user;
+      } catch {
+        isUserAdmin = false;
+      }
     }
 
     if (!isUserAdmin) {
@@ -164,11 +179,22 @@ export async function getResourceBySlug(
     }
 
     // Admin can view draft resources
-    const adminRes = await supabase
+    let adminRes = await supabase
       .from("resources")
       .select(BASE_SELECT_WITH_TECH)
       .eq("slug", slug)
       .maybeSingle();
+
+    if (
+      adminRes.error &&
+      (adminRes.error.message?.includes("tech_id") || adminRes.error.code === "42703")
+    ) {
+      adminRes = await supabase
+        .from("resources")
+        .select(BASE_SELECT_FALLBACK)
+        .eq("slug", slug)
+        .maybeSingle();
+    }
 
     if (adminRes.data) {
       return mapRowToResource(adminRes.data as unknown as ResourceRowWithCategory);
