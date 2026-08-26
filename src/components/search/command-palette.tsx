@@ -10,7 +10,6 @@ import {
   ArrowRight,
   Code2,
 } from "lucide-react";
-import { SAMPLE_LIBRARY_RESOURCES } from "@/lib/mock-data";
 
 export interface CommandPaletteProps {
   resources?: Resource[];
@@ -20,18 +19,12 @@ export function CommandPalette({ resources = [] }: CommandPaletteProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [selectedIndex, setSelectedIndex] = React.useState(0);
-  const [allResources, setAllResources] = React.useState<Resource[]>(
-    resources.length > 0 ? resources : SAMPLE_LIBRARY_RESOURCES
-  );
+  const [allResources, setAllResources] = React.useState<Resource[]>(resources);
   const router = useRouter();
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
-    if (resources && resources.length > 0) {
-      setAllResources(resources);
-    } else {
-      setAllResources(SAMPLE_LIBRARY_RESOURCES);
-    }
+    setAllResources(resources || []);
   }, [resources]);
 
   // Global Keyboard Listener for Cmd+K / Ctrl+K / '/' / 'k'
